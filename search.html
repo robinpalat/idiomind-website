@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Idiomind - Search</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="/css/classic.css">
+    <link rel="stylesheet" type="text/css" href="/css/fonts.css">
+    <link rel="shortcut icon" href="/favicon.ico?v=2" type="image/x-icon">
+    <style>
+        .search-box { max-width: 600px; margin: 40px auto; padding: 20px; }
+        .search-input { width: 100%; padding: 10px; font-size: 16px; border: 2px solid #ccc; border-radius: 4px; }
+        .search-results { max-width: 600px; margin: 20px auto; }
+        .search-result { padding: 10px; border-bottom: 1px solid #eee; }
+        .search-result a { color: #333; text-decoration: none; font-size: 16px; }
+        .search-result a:hover { text-decoration: underline; }
+        .search-result .lang { color: #888; font-size: 12px; }
+        .search-result .cat { color: #666; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="search-box">
+        <h2>Search Topics</h2>
+        <input type="text" id="searchInput" class="search-input" placeholder="Type to search..." autofocus>
+    </div>
+    <div class="search-results" id="searchResults"></div>
+
+    <script>
+    (function() {
+        var index = null;
+        var input = document.getElementById('searchInput');
+        var results = document.getElementById('searchResults');
+
+        // Check URL params for initial query
+        var params = new URLSearchParams(window.location.search);
+        var q = params.get('q');
+        if (q) {
+            input.value = q;
+        }
+
+        fetch('/search-index.json')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                index = data;
+                if (q) doSearch(q);
+            });
+
+        input.addEventListener('input', function() {
+            var val = input.value.trim();
+            if (val.length < 2) {
+                results.innerHTML = '';
+                return;
+            }
+            doSearch(val);
+        });
+
+        function doSearch(query) {
+            if (!index) return;
+            var lq = query.toLowerCase();
+            var html = '';
+            var count = 0;
+            for (var i = 0; i < index.length; i++) {
+                var item = index[i];
+                if (item.name.toLowerCase().indexOf(lq) !== -1) {
+                    html += '<div class="search-result">' +
+                        '<a href="' + item.viewUrl + '">' + item.name + '</a>' +
+                        '<div><span class="lang">' + item.lang + '</span> &middot; <span class="cat">' + item.category + '</span></div>' +
+                        '</div>';
+                    count++;
+                    if (count >= 50) break;
+                }
+            }
+            if (count === 0) {
+                html = '<p style="color:#888;text-align:center;">No results found.</p>';
+            }
+            results.innerHTML = html;
+        }
+    })();
+    </script>
+</body>
+</html>

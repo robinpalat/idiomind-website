@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+<atom:link href="https://idiomind.sourceforge.io/chinese/rss.xml" rel="self" type="application/rss+xml"/>
+<title>Content shared by users - Idiomind</title>
+<link>https://idiomind.sourceforge.io/chinese/</link>
+<description>Latest Published</description>
+<language>en-us</language>
+<lastBuildDate>Fri, 04 Sep 2026 03:26:01 GMT</lastBuildDate>
+<generator>Idiomind Build</generator>
+
+</channel>
+</rss>
