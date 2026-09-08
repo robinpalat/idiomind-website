@@ -39,24 +39,20 @@
 <body>
 
     <div class="wrapper">
-        <div class="logo_bar">
-            <img class="wrapped_logo" src="/images/logo.png" height="58px" align="left">
-            <h1>Idiomind</h1>
-            <p>
-                Idiomind is a tool for language learners seeking to enhance their language skills
-            </p>
-			<div style="opacity: 0.60; font-weight: bold; font-family: system-ui; text-align: right;font-size: 0.9em;"><a href="/donate.html">Donate</a></div>
-        </div>
-        
-        <div class="header_bar">
-            <div class="navigation_bar" align="left">
-                <a class="category" href="index.html" onfocus="this.blur();">Introduction</a>
-                <a class="category" href="help.html" onfocus="this.blur();">Getting started</a>
-                <a class="category" href="library.html" onfocus="this.blur();">Library</a>
-                <a class="category" href="/news?page=1" onfocus="this.blur();">News</a>
-                <a class="current_category" href="contact.html" onfocus="this.blur();">Contact</a>
+                <header class="site-header">
+            <div class="brand">
+                <img class="brand-mark" src="/images/logo.png" alt="Idiomind logo">
+                <a class="brand-wordmark" href="/index.html">Idiomind</a>
             </div>
-        </div>
+            <nav class="site-nav" aria-label="Main navigation">
+                <a class="site-nav-link" href="index.html" onfocus="this.blur();">Introduction</a>
+                <a class="site-nav-link" href="help.html" onfocus="this.blur();">Getting started</a>
+                <a class="site-nav-link" href="library.html" onfocus="this.blur();">Library</a>
+                <a class="site-nav-link" href="/news/index.html" onfocus="this.blur();">News</a>
+                <a class="site-nav-link current" href="contact.html" onfocus="this.blur();">Contact</a>
+            </nav>
+            <a class="site-donate" href="/donate.html">Donate</a>
+        </header>
 
         <div class="content_wrapper">
 
@@ -73,18 +69,16 @@
 
                         <span class="span6">
 
-                            <form action="https://forms.gle/REPLACE_WITH_REAL_FORM" method="post">
-                                <fieldset>
-                                <h3> </h3>
-                                 
-                                <input class="input-xxlarge" type="text" name="user" placeholder="Name" /> 
-                                <input class="input-xxlarge" type="text" type="email" name="email" value="" placeholder="Email" required/> 
+                            <iframe 
+                                src="https://docs.google.com/forms/d/e/1FAIpQLScLQ-iH8gjG9fALGhdDia2WxSoUXPQSPEPac7yka5HBaHIDzA/viewform?embedded=true" 
+                                width="640" 
+                                height="800" 
+                                frameborder="0" 
+                                marginheight="0" 
+                                marginwidth="0">
+                                Cargando…
+                            </iframe>
 
-                                <textarea  class="input-xxlarge"  rows="10"  name="note" placeholder="Your Message"></textarea>
-                                <br>
-                                <button type="submit" name="submit" value="submit" class="btn">Submit</button>
-                                </fieldset>
-                            </form>
                         </span>
                     </div>
 
@@ -106,16 +100,13 @@
         </div>
     </div>
 
-    <div class="footer">
+    <footer class="site-footer">
         <div>
             <p>
-            <small>&copy; 2022 <a href="https://idiomind.sourceforge.io">Idiomind Project </a><br><br>
+            <small>&copy; 2026 <a href="https://idiomind.sourceforge.io">Idiomind </a><br><br>
            
             </small>
             </p>
         </div>
             
-    </div>    
-
-</body>
-</html>
+    </footer>

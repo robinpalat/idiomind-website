@@ -38,6 +38,11 @@ var Topic = (function() {
         
         var subjectElement = document.querySelector("#name").children[0]
         subjectElement.innerHTML = data.name
+        var topicName = document.querySelector("#name")
+        var topicLanding = document.querySelector("#TopicLanding")
+        if (topicName && topicLanding && topicLanding.parentNode !== topicName.parentNode) {
+            topicName.parentNode.insertBefore(topicLanding, topicName.nextSibling)
+        }
         var subjectElement = document.querySelector("#info_note").children[0]
         subjectElement.innerHTML = data.info
         var subjectElement = document.querySelector("#autr").children[0]
@@ -88,6 +93,33 @@ var Topic = (function() {
     }
 
     var load_data = function(file) {
+        var favorite = file.match(/^\/([^/]+)\/fav\/(.+)\.idmnd$/)
+        if (favorite) {
+            var lookup = new XMLHttpRequest()
+            lookup.onload = function () {
+                if (lookup.status >= 200 && lookup.status < 300 && lookup.responseText.trim()) {
+                    try {
+                        var entries = JSON.parse(lookup.responseText)
+                        var name = decodeURIComponent(favorite[2])
+                        var match = entries.find(function (entry) {
+                            return entry.lang && entry.lang.toLowerCase() == favorite[1].toLowerCase() && entry.name == name
+                        })
+                        if (match) {
+                            var resolved = new URL(match.viewUrl, window.location.origin)
+                            window.myData = '/' + resolved.searchParams.get('l') + '/' + resolved.searchParams.get('c') + '/' + resolved.searchParams.get('set') + '.idmnd'
+                            load_data(window.myData)
+                            return
+                        }
+                    } catch (error) {
+                        console.error('Unable to resolve pinned topic', error)
+                    }
+                }
+            }
+            lookup.open("GET", "/search-index.json", true)
+            lookup.send()
+            return
+        }
+
         var xmlhttp = new XMLHttpRequest()
         xmlhttp.onreadystatechange = function () {
             if (xmlhttp.readyState==4 && xmlhttp.status==200) {
@@ -634,9 +666,15 @@ var Quiz = (function() {
     var load_data = function(file) {
         var xmlhttp = new XMLHttpRequest()
 
-        xmlhttp.onreadystatechange = function () {
-           data = JSON.parse(xmlhttp.responseText)
-           Quiz.renderPage(data)
+        xmlhttp.onload = function () {
+           if (xmlhttp.status >= 200 && xmlhttp.status < 300 && xmlhttp.responseText.trim()) {
+               try {
+                   data = JSON.parse(xmlhttp.responseText)
+                   Quiz.renderPage(data)
+               } catch (error) {
+                   console.error('Unable to read quiz data', error)
+               }
+           }
         }
 
         xmlhttp.open("GET", file, true)
@@ -654,17 +692,28 @@ var Quiz = (function() {
 
 window.addEventListener('load', function () {
     
-    document.getElementById("tts").onclick = function () { window.pronounce(); };
-    document.getElementById("vtts").onclick = function () { window.pronounce(); };
-    
     var div = document.getElementById("dom-target");
-    var myData = div.textContent;
-    document.getElementById("ToHomeB").onclick = function () { Topic.loadData(myData); };
-    document.getElementById("ToHomeC").onclick = function () { Topic.loadData(myData); };
-    document.getElementById("flashimg").onclick = function () { Viewer.loadData(myData); };
-    document.getElementById("flashdef").onclick = function () { Quiz.loadData(myData); };
+    var myData = div ? div.textContent : '';
 
-    document.getElementById("Show").onclick = function () {  
+    var el;
+    el = document.getElementById("tts"); if (el) el.onclick = function () { if (window.pronounce) window.pronounce(); };
+    el = document.getElementById("vtts"); if (el) el.onclick = function () { if (window.pronounce) window.pronounce(); };
+    el = document.getElementById("ToHomeB"); if (el) el.onclick = function () { Topic.loadData(myData); };
+    el = document.getElementById("ToHomeC"); if (el) el.onclick = function () { Topic.loadData(myData); };
+    el = document.getElementById("goBack"); if (el) el.onclick = function (event) {
+        event.preventDefault();
+        if (window.parent !== window && window.parent.libCloseViewer) {
+            window.parent.libCloseViewer();
+        } else if (window.parent !== window && window.parent.jQuery && window.parent.jQuery.fancybox) {
+            window.parent.jQuery.fancybox.close();
+        } else if (el.href) {
+            window.location.href = el.href;
+        }
+        return false;
+    };
+    el = document.getElementById("flashdef"); if (el) el.onclick = function () { Quiz.loadData(myData); };
+
+    el = document.getElementById("Show"); if (el) el.onclick = function () {  
         var srceElement = document.querySelector("#srce").children[0]
         var dotsElement = document.querySelector("#dots").children[0]
         srceElement.hidden = false
@@ -672,7 +721,5 @@ window.addEventListener('load', function () {
         document.getElementById("Show").style = "DISPLAY: none;";
         document.getElementById('Right').style.right = "25%";
         document.getElementById('Wrong').style.left = "25%";
-        //document.getElementById('Play').style.right = "5%";
-        //document.getElementById('Back').style.left = "21%";
     }
 })

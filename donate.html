@@ -37,34 +37,29 @@
 <body>
 
     <div class="wrapper">
-        <div class="logo_bar">
-            <img class="wrapped_logo" src="/images/logo.png" height="58px" align="left">
-            <h1>Idiomind</h1>
-            <p>
-                Idiomind is a tool for language learners seeking to enhance their language skills
-            </p>
-        </div>
-        
-        <div class="header_bar">
-            <div class="navigation_bar" align="left">
-                <a class="category" href="index.html" onfocus="this.blur();">Introduction</a>
-                <a class="category" href="help.html" onfocus="this.blur();">Getting started</a>
-                <a class="category" href="library.html" onfocus="this.blur();">Library</a>
-                <a class="category" href="/news?page=1" onfocus="this.blur();">News</a>
-                <a class="category" href="contact.html" onfocus="this.blur();">Contact</a>
-       
+                <header class="site-header">
+            <div class="brand">
+                <img class="brand-mark" src="/images/logo.png" alt="Idiomind logo">
+                <a class="brand-wordmark" href="/index.html">Idiomind</a>
             </div>
-        </div>
+            <nav class="site-nav" aria-label="Main navigation">
+                <a class="site-nav-link" href="index.html" onfocus="this.blur();">Introduction</a>
+                <a class="site-nav-link" href="help.html" onfocus="this.blur();">Getting started</a>
+                <a class="site-nav-link" href="library.html" onfocus="this.blur();">Library</a>
+                <a class="site-nav-link" href="/news/index.html" onfocus="this.blur();">News</a>
+                <a class="site-nav-link" href="contact.html" onfocus="this.blur();">Contact</a>
+            </nav>
+            <a class="site-donate" href="/donate.html">Donate</a>
+        </header>
 
         <div class="content_wrapper">
 
             <div class="content">
 
-                <h2>Donate!</h2>
+                <h2>Support Idiomind</h2>
                 <p>
-                    Donating is very simple - and secure.
-                    Please click the button below:
-                </p><br>
+                    Idiomind is free and open source. If you find it useful, consider supporting its development. Your contribution helps keep the project alive and growing.
+                </p>
 
                 <div class="container">
 
@@ -72,19 +67,15 @@
 
                         <span class="span6">
 
-                  <form action="https://www.paypal.com/donate" method="post" target="_top">
-					<input type="hidden" name="hosted_button_id" value="EAFAG73EH3S3S" />
-					<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
-					<img alt="" border="0" src="https://www.paypal.com/en_CL/i/scr/pixel.gif" width="1" height="1" />
-					</form>
+                            <form action="https://www.paypal.com/donate" method="post" target="_top">
+                                <input type="hidden" name="hosted_button_id" value="EAFAG73EH3S3S" />
+                                <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
+                                <img alt="" border="0" src="https://www.paypal.com/en_CL/i/scr/pixel.gif" width="1" height="1" />
+                            </form>
 
-					</p>
-					<h4>Thank you!</h4>
-					<p>
-					Your donation will help me to maintain and update idiomind.
-					</p>
-								</div>
-
+                            <p style="margin-top: 18px; font-size: .9rem; color: var(--ink-faint);">
+                                Any amount helps. Thank you for your support.
+                            </p>
 
                         </span>
                     </div>
@@ -96,16 +87,13 @@
         </div>
     </div>
 
-    <div class="footer">
+    <footer class="site-footer">
         <div>
             <p>
-            <small>&copy; 2022 <a href="https://idiomind.sourceforge.io">Idiomind Project </a><br><br>
+            <small>&copy; 2026 <a href="https://idiomind.sourceforge.io">Idiomind </a><br><br>
            
             </small>
             </p>
         </div>
             
-    </div>    
-
-</body>
-</html>
+    </footer>

@@ -8,11 +8,17 @@
 
 html {
     min-height:100%;
+    scrollbar-width: none;
     color:#61666c;
     font-weight:400;
     font-size:1em;
     font-family:'Open Sans', sans-serif;
     line-height:20px;
+}
+
+html::-webkit-scrollbar {
+    width: 0;
+    height: 0;
 }
 
 body {
@@ -80,6 +86,18 @@ th a {
 
 td:first-of-type a {
     padding-left: 20px;
+}
+
+#box td:nth-child(2) a {
+    padding: 10px 5px;
+    color: #302b36;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: .01em;
+}
+
+#box td:nth-child(2) a:hover {
+    color: #866895;
 }
 
 th {
@@ -173,4 +191,3 @@ img {
 		width: 28px; height: 28px;
 	}
 }
-

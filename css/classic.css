@@ -1,212 +1,543 @@
-body {
-	min-width: 1000px;
-	background: #ffffff;
-	text-align:center;
+@import url('site.css');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap');
+
+:root {
+    --bg: #F7F4EE;
+    --bg-deep: #F1ECE2;
+    --surface: #FFFDF8;
+    --line: #E6DED0;
+    --line-soft: #EFEAE0;
+    --ink: #2D2822;
+    --ink-soft: #5C554A;
+    --ink-faint: #8E8472;
+    --accent: #866895;
+    --accent-strong: #6B5276;
+    --accent-soft: #E8E0ED;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --container: 1120px;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-serif: 'Lora', Georgia, 'Times New Roman', serif;
 }
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.7;
+    text-align: left;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ------------------------------------------------------------------ */
+/* Cabecera del sitio (logo_bar + header_bar, compatibles con páginas
+   existentes que usan las clases .wrapper/.logo_bar/.header_bar)      */
+/* ------------------------------------------------------------------ */
 
 div.wrapper {
-	margin: 0 auto;
-	position: relative;
-	width: 1000px;
-}
-
-div.header_bar {
-  position: relative;
-	background: url(img/nav_bg.png) top left repeat-x;
-	width: 1000px;
-	height: 25px;
-	padding: 0px;
+    position: relative;
+    width: 100%;
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0 28px;
 }
 
 div.logo_bar {
-	width: 690px;
-	height: 60px;
-	padding: 15px;
-	background: #f3f3f3;
-	text-align: right;
-	margin-top: 10px;
+    position: relative;
+    width: 100%;
+    height: auto;
+    padding: 34px 0 16px;
+    margin: 0;
+    background: transparent;
+    text-align: left;
 }
 
-
-div.navigation_bar {
-	position: relative;
-	width: 640px;
-	height: 25px;
-	padding-top: 0px;
-	left: 0px;
-	margin-top:20px;
-}
-
-div.content_wrapper {
-	width: 1000px;
-	overflow:hidden;
-	padding:0px;
-	margin-top:10px;
-}
-
-div.navigation_subcategory_bar {
-	background: #fff;
-	width: 690px;
-	padding:15px;
-}
-
-div.empty_navigation_subcategory_bar {
-	width: 1000px;
-	height:0px;
-	padding-top:18px;
-}
-
-div.content {
-	background: #f3f3f3;
-	width: 690px;
-    margin-top: 10px;
-    margin-bottom: 25px;
-    margin-left: 0px;
-	padding:15px;
-	float:left;
-	text-align:left;
-}
-
-div.right_bar {
-	text-align:left;
-	width: 265px;
-	float:right;
-	font-family: Georgia, serif;
-	font-size: 16px;
-	font-weight: normal;
-	line-height: 18px;
-}
-hr {
-    border: 0;
-    height: 1px;
-    background-color: rgba(0, 0, 0, 0.15);
-}
-
-
-
-
-div.box {
-	padding:10px;
-	background: #f3f3f3;
-    margin-top: 10px;
-    margin-left: 10px;
-    margin-right: 5px;
-	position: relative;
-}
-
-div.space_box {
-	padding:10px;
-	background: #fff;
-    margin-top: 10px;
-    margin-left: 10px;
-    margin-right: 5px;
-	position: relative;
-}
-
-div.footer {
-	border-left: 0px;
-	border-right: 0px;
-	height:55px;
-    font-size:6px;
-    margin: 0 auto;
-	position: relative;
-	width: 1000px;
-}
-
-
-img.figure {
-  background: #d0d0d0;
-  padding:2px;
+div.logo_bar::after {
+    content: "";
+    display: block;
+    clear: both;
 }
 
 img.wrapped_logo {
-  padding-top:4px;
-  padding-right:10px;
+    float: left;
+    height: 44px;
+    width: auto;
+    margin: 4px 18px 0 0;
+    padding: 0;
 }
 
+.logo_bar h1 {
+    display: block;
+    margin: 4px 0 2px;
+    font-family: var(--font-serif);
+    font-weight: 500;
+    font-size: 1.8rem;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+}
 
-/* CSS para la animación y localización de los DIV de cookies */
- 
-@keyframes desaparecer
-{
-0%		{bottom: 0px;}
-80%		{bottom: 0px;}
-100%		{bottom: -50px;}
+.logo_bar h1 a {
+    color: inherit;
+    text-decoration: none;
 }
- 
-@-webkit-keyframes desaparecer /* Safari and Chrome */
-{
-0%		{bottom: 0px;}
-80%		{bottom: 0px;}
-100%		{bottom: -50px;}
+
+.logo_bar h1 a:hover {
+    color: var(--accent);
 }
- 
-@keyframes aparecer
-{
-0%		{bottom: -38px;}
-10%		{bottom: 0px;}
-90%		{bottom: 0px;}
-100%		{bottom: -38px;}
+
+.logo_bar > p {
+    margin: 0;
+    max-width: 46ch;
+    color: var(--ink-faint);
+    font-size: .95rem;
+    line-height: 1.5;
 }
- 
-@-webkit-keyframes aparecer /* Safari and Chrome */
-{
-0%		{bottom: -38px;}
-10%		{bottom: 0px;}
-90%		{bottom: 0px;}
-100%		{bottom: -38px;}
+
+/* Enlace de donación dentro de .logo_bar (las páginas lo llevan con
+   estilos inline; los neutralizamos para integrarlo en el diseño). */
+.logo_bar > div {
+    position: absolute;
+    top: 44px;
+    right: 0;
+    opacity: 1 !important;
+    font-weight: 400 !important;
+    font-family: var(--font-sans) !important;
+    text-align: right !important;
+    font-size: .9rem !important;
 }
-#cookiesms1:target {
-    display: none;
+
+.logo_bar > div a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    padding-bottom: 2px;
+    border-bottom: 1px solid var(--line);
+    transition: color .15s ease, border-color .15s ease;
 }
-.cookiesms{	
-	width:100%;
-	height:43px;
-	margin:0 auto;
-	padding-left:1%;
-        padding-top:5px;
-        font-size: 1.2em;
-	clear:both;
-        font-weight: strong;
-color: #333;
-bottom:0px;
-position:fixed;
-left: 0px;
-background-color: #FFF;
-opacity:0.7;
-filter:alpha(opacity=70); /* For IE8 and earlier */
-transition: bottom 1s;
--webkit-transition:bottom 1s; /* Safari */
--webkit-box-shadow: 3px -3px 1px rgba(50, 50, 50, 0.56);
--moz-box-shadow:    3px -3px 1px rgba(50, 50, 50, 0.56);
-box-shadow:         3px -3px 1px rgba(50, 50, 50, 0.56);
-z-index:999999999;
+
+.logo_bar > div a:hover {
+    color: var(--accent);
+    border-color: var(--accent);
 }
- 
-.cookiesms:hover{
-bottom:0px;
+
+div.header_bar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    padding: 0;
+    margin: 18px 0 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
 }
-.cookies2{
-background-color: #FFF;
-display:inline;
-opacity:0.95;
-filter:alpha(opacity=95);
-position:absolute; 
-left:1%; 
-top:-30px;
-font-size:15px;
-height:30px;
-padding-left:25px;
-padding-right:25px;
--webkit-border-top-right-radius: 15px;
--webkit-border-top-left-radius: 15px;
--moz-border-radius-topright: 15px;
--moz-border-radius-topleft: 15px;
-border-top-right-radius: 15px;
-border-top-left-radius: 15px;
--webkit-box-shadow: 3px -3px 1px rgba(50, 50, 50, 0.56);
--moz-box-shadow:    3px -3px 1px rgba(50, 50, 50, 0.56);
-box-shadow:         3px -3px 1px rgba(50, 50, 50, 0.56);
+
+div.navigation_bar {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 34px;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 14px 0;
 }
- 
-/* Fin del CSS para cookies */
+
+div.navigation_subcategory_bar {
+    position: relative;
+    width: 100%;
+    padding: 10px 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line-soft);
+}
+
+div.empty_navigation_subcategory_bar {
+    width: 100%;
+    height: 0;
+    padding-top: 12px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Contenido                                                           */
+/* ------------------------------------------------------------------ */
+
+div.content_wrapper {
+    width: 100%;
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0;
+    overflow: visible;
+}
+
+div.content {
+    float: none;
+    width: 100%;
+    max-width: 760px;
+    margin: 72px auto 88px;
+    padding: 0;
+    background: transparent;
+    text-align: left;
+}
+
+div.right_bar {
+    float: right;
+    width: 260px;
+    margin: 60px 0 0 40px;
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    margin: 28px 0;
+    background-color: var(--line);
+}
+
+div.box,
+div.space_box {
+    padding: 20px;
+    margin: 12px 0;
+    background: var(--surface);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-md);
+    position: relative;
+}
+
+img.figure {
+    background: var(--bg-deep);
+    padding: 3px;
+    border-radius: 4px;
+}
+
+/* Contenedores de Bootstrap embebidos en páginas estáticas */
+.content .container,
+.content .row {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.content .span6,
+.content .span4,
+.content .span8 {
+    width: 100%;
+    margin: 0;
+    float: none;
+}
+
+.content input.input-xxlarge,
+.content textarea.input-xxlarge {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0 0 14px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Pie de página                                                       */
+/* ------------------------------------------------------------------ */
+
+div.footer,
+footer.site-footer {
+    width: 100%;
+    max-width: var(--container);
+    height: auto;
+    margin: 0 auto;
+    padding: 30px 28px 46px;
+    border-top: 1px solid var(--line-soft);
+    text-align: center;
+    font-family: var(--font-sans);
+    font-size: .85rem;
+    color: var(--ink-faint);
+    background: transparent;
+    position: relative;
+}
+
+div.footer a,
+footer.site-footer a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: color .15s ease, border-color .15s ease;
+}
+
+div.footer a:hover,
+footer.site-footer a:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+div.footer p,
+footer.site-footer p {
+    margin: 0;
+    text-align: center;
+}
+
+/* ------------------------------------------------------------------ */
+/* Cabecera del sitio (logo_bar + header_bar, compatibles con páginas
+   existentes que usan las clases .wrapper/.logo_bar/.header_bar).
+   El patrón .site-header/.brand/.site-nav/.site-donate compartido con
+   la Library vive en site.css.                                        */
+/* ------------------------------------------------------------------ */
+
+.page-main {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 72px 0 88px;
+}
+
+/* --- Hero editorial --- */
+
+.hero {
+    padding-bottom: 40px;
+    margin-bottom: 48px;
+    border-bottom: 1px solid var(--line-soft);
+}
+
+.hero-kicker {
+    margin: 0 0 18px;
+    font-size: .78rem;
+    font-weight: 500;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
+.hero-title {
+    margin: 0 0 22px;
+    font-family: var(--font-serif);
+    font-weight: 500;
+    font-size: clamp(2.5rem, 6vw, 3.4rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+}
+
+.hero-lead {
+    margin: 0 0 32px;
+    max-width: 56ch;
+    font-size: 1.12rem;
+    line-height: 1.75;
+    color: var(--ink-soft);
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+}
+
+/* --- Botones --- */
+
+.btn {
+    display: inline-block;
+    padding: 11px 22px;
+    font-family: var(--font-sans);
+    font-size: .95rem;
+    font-weight: 500;
+    line-height: 1.4;
+    text-align: center;
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: color .15s ease, background .15s ease, border-color .15s ease;
+}
+
+.btn-primary {
+    color: var(--surface);
+    background: var(--ink);
+    border-color: var(--ink);
+}
+
+.btn-primary:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--surface);
+}
+
+.btn-ghost {
+    color: var(--ink-soft);
+    background: transparent;
+    border-color: var(--line);
+}
+
+.btn-ghost:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+/* --- Secciones de la página de inicio --- */
+
+.prose p {
+    margin: 0 0 20px;
+    font-size: 1.02rem;
+    color: var(--ink-soft);
+}
+
+.section-title {
+    margin: 0 0 16px;
+    font-family: var(--font-serif);
+    font-weight: 500;
+    font-size: 1.55rem;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+}
+
+.section-note {
+    margin: 0 0 20px;
+    color: var(--ink-soft);
+}
+
+.features {
+    padding-top: 20px;
+}
+
+.features-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    columns: 2;
+    column-gap: 40px;
+}
+
+.features-list li {
+    position: relative;
+    margin: 0 0 14px;
+    padding-left: 22px;
+    color: var(--ink-soft);
+    break-inside: avoid;
+}
+
+.features-list li::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 0.62em;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+}
+
+.usage {
+    padding-top: 24px;
+    margin-top: 52px;
+    border-top: 1px solid var(--line-soft);
+}
+
+.media-frame {
+    margin: 24px 0 0;
+    padding: 12px;
+    background: var(--surface);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-md);
+    display: inline-block;
+}
+
+.install {
+    padding-top: 24px;
+    margin-top: 52px;
+    border-top: 1px solid var(--line-soft);
+}
+
+.install pre {
+    margin: 22px 0;
+    padding: 20px 24px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+}
+
+.install pre code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .92rem;
+    line-height: 1.8;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    padding: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Estado de cookies heredado (sin uso activo, conservado)             */
+/* ------------------------------------------------------------------ */
+
+.cookiesms {
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    color: var(--ink-soft);
+    font-size: .9rem;
+    padding: 10px 16px;
+    z-index: 999999999;
+    box-shadow: 0 -2px 12px rgba(45, 40, 34, 0.06);
+}
+
+.cookiesms p {
+    margin: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Responsive                                                          */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 980px) {
+    div.wrapper {
+        padding: 0 24px;
+    }
+
+    div.logo_bar {
+        padding-top: 28px;
+    }
+
+    .logo_bar > div {
+        position: static;
+        margin: 14px 0 0;
+        text-align: left !important;
+    }
+
+    .page-main {
+        padding: 56px 0 72px;
+    }
+
+    div.content {
+        margin: 56px auto 72px;
+    }
+
+    .features-list {
+        columns: 1;
+    }
+}
+
+@media (max-width: 680px) {
+    .navigation_bar {
+        gap: 4px 20px;
+    }
+
+    div.navigation_bar a {
+        font-size: .92rem;
+    }
+
+    .hero-actions .btn {
+        width: 100%;
+    }
+}

@@ -121,12 +121,12 @@
       // Custom CSS styling for iframe wrapping element
       // You can use this to set custom iframe dimensions
       css: {
-          	width  : "100%",
-            height : "100%",
-            "min-width"  : "100%",
-            "min-height" : "100%",
-            "max-width"  : "100%",
-            "max-height" : "100%",
+            width: "90%",
+            height: "86%",
+            "min-width": "0",
+            "min-height": "0",
+            "max-width": "1120px",
+            "max-height": "90%",
             background: "#E7E1DF",
           },
 
@@ -1996,6 +1996,9 @@
         .appendTo($slide);
 
       $slide.addClass("fancybox-slide--" + slide.contentType);
+      if (slide.src && /\/view\.html(?:\?|$)/.test(slide.src)) {
+        $slide.addClass("fancybox-topic-iframe");
+      }
 
       slide.$iframe = $iframe = $(opts.tpl.replace(/\{rnd\}/g, new Date().getTime()))
         .attr(opts.attr)

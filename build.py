@@ -190,6 +190,302 @@ def generate_latest_html(lang, categories, max_items=6):
     return "\n".join(html_parts)
 
 
+def generate_category_item(lang, cat_name, count, endpoint, cls="category-item", attrs=""):
+    """Build the clickable category component: name + topics count + folder icon.
+
+    El ancla conserva `data-fancybox`/`href` para abrir exactamente el mismo
+    lightbox de siempre. El enlace box.html|mobilebox.html|appbox.html es
+    reescrito a <lang>/<category>/index.html por el post-procesado.
+    """
+    label = esc(cat_name.replace("-", " ").title())
+    word = "topic" if count == 1 else "topics"
+    prefix = f'{attrs} ' if attrs else ""
+    return (
+        f'<a {prefix}href="/{lang}/{endpoint}?lang={url_quote(lang)}&category={url_quote(cat_name)}" '
+        f'target="_new" class="{cls}">\n'
+        f'    <span class="category-name">{label}</span>\n'
+        f'    <span class="category-count">{count} {word}</span>\n'
+        f'    <i class="fa fa-folder-o category-icon" aria-hidden="true"></i>\n'
+        f'</a>'
+    )
+
+
+def generate_library_header(lang, uplang):
+    """Header compartido de la Library, con la misma identidad visual que el Home."""
+    return f"""            <header class="site-header">
+                <div class="brand">
+                    <img class="brand-mark" src="/images/logo.png" alt="Idiomind logo">
+                    <a class="brand-wordmark" href="/index.html">Idiomind</a>
+                </div>
+                <nav class="site-nav" aria-label="Main navigation">
+                    <a class="site-nav-link" href="/index.html" onfocus="this.blur();">Home</a>
+                    <a class="site-nav-link current" href="/{esc(lang)}/" onfocus="this.blur();">{esc(uplang)}</a>
+                    <a class="site-nav-link" href="/library.html" onfocus="this.blur();">Library</a>
+                    <a class="site-nav-link" href="/news/index.html" onfocus="this.blur();">News</a>
+                    <a class="site-nav-link" href="/contact.html" onfocus="this.blur();">Contact</a>
+                </nav>
+                <div class="site-tools">
+                    <a class="site-tool" href="#" onclick="underc();return false;">Plus</a>
+                    <a class="site-tool" href="#" onclick="underc();return false;"><i class="fa fa-user-o" aria-hidden="true"></i> Sign in</a>
+                </div>
+                <a class="site-donate" href="/donate.html">Donate</a>
+            </header>
+
+            <header class="library-head">
+                <p class="page-kicker">Topic library</p>
+                <h1 class="page-title">{esc(uplang)}</h1>
+            </header>"""
+
+
+def generate_library_page(languages_data):
+    """Generate the root library.html (selector de idioma + grilla de topics).
+
+    - Si NO hay cookie `language`: se muestra la presentación que invita a
+      elegir el idioma que se está aprendiendo.
+    - Al elegir un idioma se guarda la cookie `language` (idioma target) y la
+      grilla de contenidos de ese idioma se presenta en esta misma página,
+      abriendo los topics con el mismo lightbox de siempre.
+    - La siguiente visita a la pestaña Library entra directamente en la
+      grilla del idioma guardado.
+    """
+    picker_items = []
+    lang_sections = []
+    lang_js = []
+    for lang, categories in languages_data:
+        uplang = lang.capitalize()
+        cat_items = []
+        total = 0
+        for cat_name, idmnd_files in categories:
+            count = len(idmnd_files)
+            total += count
+            if count > 0:
+                cat_items.append(generate_category_item(
+                    lang, cat_name, count, "box.html",
+                    attrs='data-fancybox data-type="iframe" data-small-btn="true"'))
+        cat_html = "\n".join(cat_items)
+        latest = generate_latest_html(lang, categories).replace(' class="btn btn-primary"', '')
+        word = "topic" if total == 1 else "topics"
+        lang_js.append(f'"{lang}"')
+        picker_items.append(f"""<li>
+                    <a class="language-option" data-lang="{lang}" href="/{lang}/" onclick="return libPick('{lang}');">
+                        <span class="language-name">{esc(uplang)}</span>
+                        <span class="language-count">{total} {word}</span>
+                        <i class="fa fa-language language-icon" aria-hidden="true"></i>
+                    </a>
+                </li>""")
+        lang_sections.append(f"""<section class="library-topic-view" data-lang="{lang}" hidden>
+                    <header class="library-head">
+                        <p class="page-kicker">Topic library</p>
+                        <h1 class="page-title">{esc(uplang)}</h1>
+                        <p class="library-switch"><a href="#" onclick="return libPick('');">Change language</a></p>
+                    </header>
+                    <table width='100%'>
+                        <tr>
+                            <td valign="top">
+                                <div class="feed-lists">
+                                    <h1><i class="fa fa-bolt" aria-hidden="true"></i> Latest published</h1>
+{latest}
+                                </div>
+                            </td>
+                            <td valign="top">
+                                <div class="fav-lists" id="favlists-{lang}"></div>
+                            </td>
+                        </tr>
+                    </table>
+                    <div class="category-grid">
+{cat_html}
+                    </div>
+                </section>""")
+
+    picker_html = "\n".join(picker_items)
+    sections_html = "\n".join(lang_sections)
+    langs_js = ",".join(lang_js)
+
+    return f"""<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+    <meta charset="utf-8">
+    <title>Idiomind | Library</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="keywords" content="learn english free, learn english online, learn english grammar, learn english vocabulary, free English lessons, english vocabulary, idiom library, ESL, EFL, pronunciation, grammar, vocabulary, tests, lessons, quiz, resources"/>
+    <meta name="description" content="Idiomind is a valuable tool for language learners seeking to enhance their language skills. Choose the language you are learning and explore the topics shared by the community."/>
+
+    <link rel="stylesheet" type="text/css" href="/css/classic.css">
+    <link rel="stylesheet" type="text/css" href="/css/fonts.css">
+    <link href="/css/fa/css/font-awesome.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="/js/fancybox/jquery.fancybox.css" media="screen" />
+
+    <style>
+    /* Mismo tamaño de lightbox que en las páginas de idioma */
+    .fancybox-slide--iframe .fancybox-content {{
+        width: 74%;
+        height: 86%;
+        max-width: 1120px;
+        max-height: 96%;
+        margin: 0;
+        background: var(--surface);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        box-shadow: 0 30px 70px rgba(35, 27, 18, 0.28);
+    }}
+    @media (max-width: 900px) {{
+        .fancybox-slide--iframe .fancybox-content {{
+            width: 92%;
+            height: 88%;
+            max-width: 100%;
+        }}
+    }}
+    </style>
+
+    <link rel="shortcut icon" href="/favicon.ico?v=2" type="image/x-icon">
+    <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32"/>
+    <link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16"/>
+    <link rel="image_src" href="/images/logo.png"/><!--formatted-->
+
+    <script type="text/javascript">
+        /* Idioma target de aprendizaje, guardado en la cookie "language"
+           (la misma cookie que establecen las páginas de cada idioma). */
+        var LIB_COOKIE = 'language';
+        var LIB_LANGS = [{langs_js}];
+        function libGetCookie() {{
+            var name = LIB_COOKIE + '=';
+            var ca = document.cookie.split(';');
+            for (var i = 0; i < ca.length; i++) {{
+                var c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1);
+                if (c.indexOf(name) == 0) {{
+                    try {{ return decodeURIComponent(c.substring(name.length, c.length)); }}
+                    catch (e) {{ return c.substring(name.length, c.length); }}
+                }}
+            }}
+            return '';
+        }}
+        function libSetCookie(value) {{
+            var d = new Date();
+            d.setTime(d.getTime() + (365 * 24 * 60 * 60 * 1000));
+            document.cookie = LIB_COOKIE + '=' + encodeURIComponent(value) + '; expires=' + d.toUTCString() + '; path=/; SameSite=Lax';
+        }}
+        function libGetCookieValue(name) {{
+            var n = name + '=';
+            var ca = document.cookie.split(';');
+            for (var i = 0; i < ca.length; i++) {{
+                var c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1);
+                if (c.indexOf(n) == 0) {{
+                    try {{ return decodeURIComponent(c.substring(n.length, c.length)); }}
+                    catch (e) {{ return c.substring(n.length, c.length); }}
+                }}
+            }}
+            return '';
+        }}
+        function libShowView(lang) {{
+            var views = document.getElementsByClassName('library-topic-view');
+            var found = false;
+            for (var i = 0; i < views.length; i++) {{
+                var on = views[i].getAttribute('data-lang') === lang;
+                views[i].hidden = !on;
+                if (on) found = true;
+            }}
+            var picker = document.getElementById('library-picker');
+            if (picker) picker.hidden = (lang && found);
+            libShowPinned(lang);
+        }}
+        function libListFavs(lang) {{
+            var faves = libGetCookieValue(lang.charAt(0) + 'PINS');
+            if (!faves) return;
+            faves = faves.split('|');
+            var div = document.getElementById('favlists-' + lang);
+            if (!div || faves.length < 1) return;
+            var out = '<h1>Pinned <i class="fa fa-thumb-tack" aria-hidden="true"></i></h1>';
+            for (var i = 0; i < faves.length; i++) {{
+                var fav = faves[i];
+                if (!fav) continue;
+                out += '<a data-fancybox data-type="iframe" data-small-btn="true" '
+                    + 'href="/' + lang + '/view.html?l=' + lang + '&c=fav&set=' + fav + '">'
+                    + fav + '</a><br>';
+            }}
+            div.innerHTML = out;
+        }}
+        function libShowPinned(lang) {{
+            var views = document.getElementsByClassName('library-topic-view');
+            for (var i = 0; i < views.length; i++) {{
+                var l = views[i].getAttribute('data-lang');
+                if (l && l !== lang) {{
+                    var d = document.getElementById('favlists-' + l);
+                    if (d) d.innerHTML = '';
+                }}
+            }}
+            if (lang) libListFavs(lang);
+        }}
+        function libPick(lang) {{
+            if (lang) {{
+                libSetCookie(lang);
+                libShowView(lang);
+            }} else {{
+                libShowView('');
+            }}
+            return false;
+        }}
+        (function() {{
+            var saved = libGetCookie();
+            if (saved) {{
+                var known = false;
+                for (var i = 0; i < LIB_LANGS.length; i++) {{ if (LIB_LANGS[i] === saved) known = true; }}
+                if (known) libShowView(saved);
+            }}
+        }})();
+    </script>
+
+    <script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="/js/fancybox/jquery.fancybox.js"></script>
+
+    {GA_SNIPPET}
+</head>
+
+<body>
+
+    <div class="library-main">
+
+        <header class="site-header">
+            <div class="brand">
+                <img class="brand-mark" src="/images/logo.png" alt="Idiomind logo">
+                <a class="brand-wordmark" href="/index.html">Idiomind</a>
+            </div>
+            <nav class="site-nav" aria-label="Main navigation">
+                <a class="site-nav-link" href="index.html" onfocus="this.blur();">Introduction</a>
+                <a class="site-nav-link" href="help.html" onfocus="this.blur();">Getting started</a>
+                <a class="site-nav-link current" href="library.html" onfocus="this.blur();">Library</a>
+                <a class="site-nav-link" href="/news/index.html" onfocus="this.blur();">News</a>
+                <a class="site-nav-link" href="contact.html" onfocus="this.blur();">Contact</a>
+            </nav>
+            <a class="site-donate" href="/donate.html">Donate</a>
+        </header>
+
+        <section id="library-picker" class="language-picker">
+            <header class="library-head">
+                <p class="page-kicker">Idiomind library</p>
+                <h1 class="page-title">Choose the language you are learning</h1>
+                <p class="page-lead">Select the language you are learning to browse the topics shared by the community. Your choice is remembered on this device.</p>
+            </header>
+            <ul class="language-list">
+{picker_html}
+            </ul>
+        </section>
+
+{sections_html}
+
+        <footer class="site-footer">
+            <p>&copy; 2022 <a href="https://idiomind.sourceforge.io">Idiomind Project</a></p>
+        </footer>
+
+    </div>
+
+</body>
+
+</html>
+"""
+
+
 def generate_lang_index(lang, categories):
     """Generate the main home page for a language."""
     uplang = lang.capitalize()
@@ -197,9 +493,9 @@ def generate_lang_index(lang, categories):
     for cat_name, idmnd_files in categories:
         count = len(idmnd_files)
         if count > 0:
-            cat_label = esc(cat_name)
-            cat_img = esc(cat_name)
-            cat_boxes.append(f'<a data-fancybox data-type="iframe" href="/{lang}/box.html?lang={url_quote(lang)}&category={url_quote(cat_name)}" target="_new" class="btn btn-primary" data-small-btn="true"><div class="floating-box"><img class="expand" src="/images/{cat_img}.png" /><span class="circle-count">{count} <font size=1>topics</font></span></div></a>')
+            cat_boxes.append(generate_category_item(
+                lang, cat_name, count, "box.html",
+                attrs='data-fancybox data-type="iframe" data-small-btn="true"'))
 
     categories_html = "\n".join(cat_boxes)
     latest = generate_latest_html(lang, categories)
@@ -319,21 +615,10 @@ def generate_lang_index(lang, categories):
     <main id="content" class="group" role="main">
         <div class="main">
 
-            <!-- Table header -->
-            <table width="100%" height="50" border="0" align="center" class="navbar-header" style="border-spacing:4px 4px;">
-                <td vertical-align="middle" width="120px" align="left" class="langtitle">
-                    <a style="color:#FFFFFF" href="/{esc(lang)}">{esc(uplang)}</a>
-                </td>
-                <td style="border-radius:8px;background:transparent;color:#FF9F4A;cursor:pointer;" width="40px" height="10px" class="topLinks" id="show_fix" onclick="underc();">Plus</td>
-                <td ></td>
-                <td ></td>
-                <td align="right">
-                    <i class="fa fa-user-o" aria-hidden="true"></i><a style="color:#FFFFFF;" class="userbutton" onclick="underc();">Login</a>
-                </td>
-            </table>
-            <br>
+            <!-- Header (misma identidad visual que el Home) -->
+            {generate_library_header(lang, uplang)}
 
-            <!-- plus  & searchBox -->
+            <!-- plus & searchBox -->
             <div id="plus"></div>
             <div id="searchBox"></div>
 
@@ -440,9 +725,9 @@ def generate_lang_mobile(lang, categories):
     for cat_name, idmnd_files in categories:
         count = len(idmnd_files)
         if count > 0:
-            cat_label = esc(cat_name)
-            cat_img = esc(cat_name)
-            cat_boxes.append(f'<a data-fancybox data-type="iframe" href="/{lang}/mobilebox.html?lang={url_quote(lang)}&category={url_quote(cat_name)}" target="_new"><div class="floating-box"><img class="expand" src="/images/{cat_img}.png" /><span class="circle-count">{count} <font size=1>topics</font></span></div></a>')
+            cat_boxes.append(generate_category_item(
+                lang, cat_name, count, "mobilebox.html",
+                attrs='data-fancybox data-type="iframe"'))
 
     categories_html = "\n".join(cat_boxes)
     latest = generate_latest_html(lang, categories)
@@ -561,21 +846,10 @@ def generate_lang_mobile(lang, categories):
     <main id="content" class="group" role="main">
         <div class="main">
 
-            <!-- Table header -->
-            <table width="100%" height="40" border="0" align="center" class="navbar-header" style="border-spacing:4px 4px;">
-                <td vertical-align="middle" width="80px" align="left" class="langtitle">
-                    <a style="color:#FFFFFF" href="/{esc(lang)}">{esc(uplang)}</a>
-                </td>
-                <td style="border-radius:8px;background:transparent;color:#FF9F4A;cursor:pointer;" width="30px" height="10px" class="topLinks" id="show___" onclick="underc();" href="#">Plus</td>
-                <td ></td>
-                <td ></td>
-                <td align="right">
-                    <i class="fa fa-user-o" aria-hidden="true"></i><a style="color:#FFFFFF;" class="userbutton" onclick="underc();">Login</a>
-                </td>
-            </table>
-            <br>
+            <!-- Header (misma identidad visual que el Home) -->
+            {generate_library_header(lang, uplang)}
 
-            <!-- plus  & searchBox -->
+            <!-- plus & searchBox -->
             <div id="plus"></div>
             <div id="searchBox"></div>
 
@@ -681,9 +955,9 @@ def generate_lang_app(lang, categories):
     for cat_name, idmnd_files in categories:
         count = len(idmnd_files)
         if count > 0:
-            cat_label = esc(cat_name)
-            cat_img = esc(cat_name)
-            cat_boxes.append(f'<a title="{cat_label}" href="/{lang}/appbox.html?lang={url_quote(lang)}&category={url_quote(cat_name)}" target="_new" class="box"><div class="floating-box"><img class="expand" src="/images/{cat_img}.png" /><span class="circle-count">{count} <font size=1>topics</font></span></div></a>')
+            cat_boxes.append(generate_category_item(
+                lang, cat_name, count, "appbox.html",
+                cls="box category-item", attrs=f'title="{esc(cat_name)}"'))
 
     categories_html = "\n".join(cat_boxes)
 
@@ -743,18 +1017,7 @@ function setCookie() {{
     <main id="content" class="group" role="main">
     <div class="main">
 
-    <table width="100%" height="40px" border="0" align="center" class="top">
-        <td style="width:55%;" align="left" >
-            <a class="langtitle" style="vertical-align:top;font-size:17px;color:#FFFFFF" href="/{esc(lang)}/app.html">My {esc(uplang)}</a>
-        </td>
-        <td style="width:40%;" align="right">
-            <a style="text-align:middle;font-size:12px;text-decoration:none;color:#CCCCCC" href="../community/">My account</a>
-        </td>
-           <td style="width:2%;" align="right">
-            <img height="32" width="32" src="/images/logo.svg">
-        </td>
-    </table>
-<br>
+    {generate_library_header(lang, uplang)}
     <div id="categories">
     {categories_html}
     </div>
@@ -1105,15 +1368,12 @@ def generate_view(lang, css_file="/css/view.css", js_file="/js/view.js"):
         </table>
     </span>
 
-    <br>
     <span id="TopicLanding">
             <div class="TestStartBtn">
 
                 <input type="image" src="/images/fav.png" class="fav" style="outline:none;" id="FavBtn" onclick="Favesjs(this);" />
-                <input title="Studys" type="image" src="/images/lesson.png" class="flashimg" style="outline:none;" id="flashimg" onclick="doFunction();" />
-                <input title="Flascards" type="image" src="/images/flashc1.png" class="flashdef" style="outline:none;" id="flashdef" onclick="doFunction();" />
+                <input title="Flashcards" type="image" src="/images/flashc1.png" class="flashdef" style="outline:none;" id="flashdef" />
             </div>
-            <br><br><br><br>
             <div class="note" id="info_note">
                 <p style="color:#4A4A4A;"></p>
             </div>
@@ -1394,41 +1654,44 @@ def generate_root_index():
 
     <div class="wrapper">
 
-        <div class="logo_bar">
-            <img class="wrapped_logo" src="/images/logo.png" height="58px" align="left">
-                <h1><a href="/index.html">Idiomind</a></h1>
-                <p>Idiomind is a tool for language learners seeking to enhance their language skills</p>
-
-                <div style="opacity: 0.60; font-weight: bold; font-family: system-ui; text-align: right;font-size: 0.9em;"><a href="/donate.html">Donate</a></div>
-
-        </div>
-
-        <div class="header_bar">
-            <div class="navigation_bar" align="left">
-                <a class="current_category" href="index.html" onfocus="this.blur();">Introduction</a>
-                <a class="category" href="help.html" onfocus="this.blur();">Getting started</a>
-                <a class="category" href="library.html" onfocus="this.blur();">Library</a>
-                <a class="category" href="/news/index.html" onfocus="this.blur();">News</a>
-                <a class="category" href="contact.html" onfocus="this.blur();">Contact</a>
-
+        <header class="site-header">
+            <div class="brand">
+                <img class="brand-mark" src="/images/logo.png" alt="Idiomind logo">
+                <a class="brand-wordmark" href="/index.html">Idiomind</a>
             </div>
-        </div>
+            <nav class="site-nav" aria-label="Main navigation">
+                <a class="site-nav-link current" href="index.html" onfocus="this.blur();">Introduction</a>
+                <a class="site-nav-link" href="help.html" onfocus="this.blur();">Getting started</a>
+                <a class="site-nav-link" href="library.html" onfocus="this.blur();">Library</a>
+                <a class="site-nav-link" href="/news/index.html" onfocus="this.blur();">News</a>
+                <a class="site-nav-link" href="contact.html" onfocus="this.blur();">Contact</a>
+            </nav>
+            <a class="site-donate" href="/donate.html">Donate</a>
+        </header>
 
-        <div class="content_wrapper">
+        <main class="page-main">
 
+            <section class="hero">
+                <p class="hero-kicker">A quiet place for the words you learn</p>
+                <h1 class="hero-title">Idiomind</h1>
+                <p class="hero-lead">
+                    Keep the words and phrases you come across every day, review them, and make them yours — in up to ten languages.
+                </p>
+                <div class="hero-actions">
+                    <a class="btn btn-primary" href="/library.html">Explore the library</a>
+                    <a class="btn btn-ghost" href="#install">Get Idiomind</a>
+                </div>
+            </section>
 
-            <div class="content">
-
+            <section class="prose">
                 <p>
                     Language learners are always in search of new words and phrases. Idiomind can assist you in your language learning journey by allowing you to save and practice the words and phrases you come across every day.
                 </p>
-                <br>
-                <h2>
-                    Features
-                </h2>
+            </section>
 
-                <p>
-                    <ul>
+            <section class="features">
+                <h2 class="section-title">Features</h2>
+                <ul class="features-list">
                     <li>Take notes on the go</li>
                     <li>Words and phrases pronunciation</li>
                     <li>Automatic translation using Google Translate</li>
@@ -1436,55 +1699,39 @@ def generate_root_index():
                     <li>Track your progress through reviews to reinforce your learning</li>
                     <li>Customize up to 10 languages to learn</li>
                     <li>User-friendly interface available in English, Spanish, Portuguese, French, and Italian</li>
-                    </ul>
+                </ul>
+            </section>
+
+            <section class="usage">
+                <h2 class="section-title">Usage example</h2>
+                <p class="section-note">
+                    Taking note of words and sentences from a PDF document. Here is an example of how to take notes on words and sentences from a PDF document using Idiomind:
                 </p>
-                <br>
-                <h2>
-                    Usage Example
-
-                </h2>
-
-                <p>Usage Example: Taking note of words and sentences from a PDF document<br>
-                Here is an example of how to take notes on words and sentences from a PDF document using Idiomind:</p><br><br>
+                <div class="media-frame">
                     <iframe width="285" height="160" src="https://www.youtube.com/embed/HFvcQjlVHcA?rel=0&showinfo=0" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </section>
+
+            <section class="install" id="install">
+                <h2 class="section-title">Install / Download</h2>
+                <p class="section-note">You can install Idiomind through the terminal using the following commands:</p>
+                <pre><code>add-apt-repository ppa:robinpalat/idiomind
+apt-get update
+apt-get install idiomind</code></pre>
+                <p class="section-note">
+                    Alternatively, you can download it from SourceForge. However, the recommended method is to use the above commands for installation.
                 </p>
+                <a href="https://sourceforge.net/projects/idiomind/files/latest/download"><img alt="Download Idiomind" src="https://a.fsdn.com/con/app/sf-download-button" width=276 height=48 srcset="https://a.fsdn.com/con/app/sf-download-button?button_size=2x 2x"></a>
+            </section>
 
-                <br>
-                <h2>
-                    Install / Download
-                </h2>
-
-                <p>You can install Idiomind through the terminal using the following commands:<br></p>
-                <p><code>add-apt-repository ppa:robinpalat/idiomind<br>
-                apt-get update<br>
-                apt-get install idiomind</code>
-                </p>
-             <br>
-                <p>
-                    Alternatively, you can download it from sourceforge.net.<br>However, the recommended method is to use the above commands for installation. </p>
-                    <a href="https://sourceforge.net/projects/idiomind/files/latest/download"><img alt="Download Idiomind" src="https://a.fsdn.com/con/app/sf-download-button" width=276 height=48 srcset="https://a.fsdn.com/con/app/sf-download-button?button_size=2x 2x"></a>
-                <br>
-                <br>
-            </div>
-
-        </div>
-
+        </main>
 
     </div>
-    <div class="footer">
 
+    <footer class="site-footer">
+        <p>&copy; 2023 <a href="https://idiomind.sourceforge.io">Idiomind Project</a></p>
+    </footer>
 
-        <span>
-            <p>
-            <small>&copy; 2023 <a href="https://idiomind.sourceforge.io">Idiomind Project </a><br><br>
-
-
-
-            </small>
-            </p>
-            </span>
-
-    </div>
 </body>
 
 </html>
@@ -1578,7 +1825,7 @@ def generate_mobile_root():
                 <br><br><br>
                 <h3>Support or contact</h3><br>
                 <p><a href="/helpm.html">Getting started with idiomind</a></p><br>
-                <p><a href="/librarym.html">Topic Library</a></p><br>
+                <p><a href="/library.html">Topic Library</a></p><br>
                 <p><a href="/contactm.html">Send a message</a></p><br>
                 <br>
                 <footer>
@@ -2131,6 +2378,10 @@ def build():
         print(f"  Copying .idmnd files...")
         copy_idmnd_files(lang, lang_dir, dist_lang)
 
+    # Generate the root library page (language picker + topic grid by cookie)
+    print("\nGenerating library.html...")
+    (DIST_DIR / "library.html").write_text(generate_library_page(languages_data), encoding="utf-8")
+
     # Generate search index
     print("\nGenerating search-index.json...")
     (DIST_DIR / "search-index.json").write_text(generate_search_index(languages_data), encoding="utf-8")
@@ -2147,6 +2398,10 @@ def build():
     print("\nPost-processing: fixing references in static HTML files...")
     fix_php_references()
     fix_broken_refs()
+
+    # Keep the repository copy of library.html in sync with the generated page
+    (BASE_DIR / "library.html").write_text(
+        (DIST_DIR / "library.html").read_text(encoding="utf-8"), encoding="utf-8")
 
     # Generate doc/ pages (not part of language tree)
     print("\nGenerating doc pages...")

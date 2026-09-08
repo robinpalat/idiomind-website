@@ -16,6 +16,7 @@ body.compensate-for-scrollbar {
 
 .fancybox-container {
     -webkit-backface-visibility: hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     height: 100%;
     left: 0;
     outline: none;
@@ -50,7 +51,7 @@ body.compensate-for-scrollbar {
 }
 
 .fancybox-bg {
-    background: rgb(30, 30, 30);
+    background: #241F19;
     opacity: 0;
     transition-duration: inherit;
     transition-property: opacity;
@@ -84,7 +85,7 @@ body.compensate-for-scrollbar {
 }
 
 .fancybox-infobar {
-    color: #ccc;
+    color: #E8E1D4;
     font-size: 13px;
     -webkit-font-smoothing: subpixel-antialiased;
     height: 44px;
@@ -163,6 +164,18 @@ body.compensate-for-scrollbar {
 
 .fancybox-slide--html {
     padding: 6px;
+}
+
+.fancybox-slide--iframe .fancybox-content {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    margin: 0;
+    background: #FFFDF8;
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: none;
 }
 
 .fancybox-content {
@@ -250,10 +263,14 @@ body.compensate-for-scrollbar {
 .fancybox-slide--map .fancybox-content,
 .fancybox-slide--pdf .fancybox-content,
 .fancybox-slide--iframe .fancybox-content {
-    height: 100%;
-    overflow: visible;
+    height: 100vh;
+    overflow: hidden;
     padding: 0;
-    width: 100%;
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
 }
 
 .fancybox-slide--video .fancybox-content {
@@ -265,7 +282,27 @@ body.compensate-for-scrollbar {
 }
 
 .fancybox-slide--iframe .fancybox-content {
-    background: #fff;
+    background: #FFFDF8;
+}
+
+/* Keep iframe modals inside the current browser viewport. */
+.fancybox-slide--iframe {
+    padding: 24px !important;
+}
+
+.fancybox-slide--iframe .fancybox-content {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    border-radius: 10px;
+    box-shadow: 0 30px 70px rgba(35, 27, 18, .28);
+}
+
+@media (max-width: 600px) {
+    .fancybox-slide--iframe {
+        padding: 12px !important;
+    }
 }
 
 .fancybox-video,
@@ -306,7 +343,7 @@ body.compensate-for-scrollbar {
 /* Buttons */
 
 .fancybox-button {
-    background: rgba(30, 30, 30, .6);
+    background: rgba(36, 31, 25, .55);
     border: 0;
     border-radius: 0;
     box-shadow: none;
@@ -316,7 +353,7 @@ body.compensate-for-scrollbar {
     margin: 0;
     padding: 10px;
     position: relative;
-    transition: color .2s;
+    transition: color .2s, background .2s;
     vertical-align: top;
     visibility: inherit;
     width: 44px;
@@ -325,11 +362,12 @@ body.compensate-for-scrollbar {
 .fancybox-button,
 .fancybox-button:visited,
 .fancybox-button:link {
-    color: #ccc;
+    color: #E8E1D4;
 }
 
 .fancybox-button:hover {
     color: #fff;
+    background: rgba(174, 91, 53, .75);
 }
 
 .fancybox-button:focus {
@@ -376,7 +414,7 @@ body.compensate-for-scrollbar {
 }
 
 .fancybox-progress {
-    background: #ff5268;
+    background: #866895;
     height: 2px;
     left: 0;
     position: absolute;
@@ -393,12 +431,12 @@ body.compensate-for-scrollbar {
 /* Close button on the top right corner of html content */
 
 .fancybox-close-small {
-    background: transparent;
+    background: rgba(24, 20, 15, .35);
     border: 0;
-    border-radius: 0;
-    color: #ccc;
+    border-radius: 50%;
+    color: #D8CFBE;
     cursor: pointer;
-    opacity: .8;
+    opacity: .85;
     padding: 8px;
     position: absolute;
     right: -12px;
@@ -408,6 +446,7 @@ body.compensate-for-scrollbar {
 
 .fancybox-close-small:hover {
     color: #fff;
+    background: rgba(174, 91, 53, .8);
     opacity: 1;
 }
 
@@ -416,6 +455,28 @@ body.compensate-for-scrollbar {
     padding: 10px;
     right: 0;
     top: 0;
+}
+
+.fancybox-slide--iframe .fancybox-close-small {
+    /* v3 por defecto lo sitúa en top:-44px; right:-12px (fuera del content).
+       Los contenedores con overflow:hidden y border-radius lo recortan, así que
+       lo llevamos al interior de la esquina superior derecha del lightbox. */
+    top: 12px;
+    right: 12px;
+    background: rgba(24, 20, 15, .82);
+    color: #F5EFE4;
+    opacity: 1;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .35);
+}
+
+.fancybox-slide--iframe .fancybox-close-small:hover {
+    background: rgba(174, 91, 53, .95);
+    color: #fff;
+}
+
+/* Topic iframes provide their own close/back control. */
+.fancybox-topic-iframe .fancybox-close-small {
+    display: none;
 }
 
 .fancybox-slide--image.fancybox-is-scaling .fancybox-content {
@@ -459,16 +520,16 @@ body.compensate-for-scrollbar {
 .fancybox-caption {
     background: linear-gradient(
     to top,
-    rgba(0, 0, 0, .85) 0%,
-    rgba(0, 0, 0, .3) 50%,
-    rgba(0, 0, 0, .15) 65%,
-    rgba(0, 0, 0, .075) 75.5%,
-    rgba(0, 0, 0, .037) 82.85%,
-    rgba(0, 0, 0, .019) 88%,
-    rgba(0, 0, 0, 0) 100%
+    rgba(36, 31, 25, .88) 0%,
+    rgba(36, 31, 25, .34) 50%,
+    rgba(36, 31, 25, .16) 65%,
+    rgba(36, 31, 25, .08) 75.5%,
+    rgba(36, 31, 25, .04) 82.85%,
+    rgba(36, 31, 25, .02) 88%,
+    rgba(36, 31, 25, 0) 100%
     );
     bottom: 0;
-    color: #eee;
+    color: #EDE6D8;
     font-size: 14px;
     font-weight: 400;
     left: 0;
@@ -499,7 +560,7 @@ body.compensate-for-scrollbar {
 .fancybox-caption a,
 .fancybox-caption a:link,
 .fancybox-caption a:visited {
-    color: #ccc;
+    color: #DAD1BE;
     text-decoration: none;
 }
 
@@ -513,8 +574,8 @@ body.compensate-for-scrollbar {
 .fancybox-loading {
     animation: fancybox-rotate 1s linear infinite;
     background: transparent;
-    border: 4px solid #888;
-    border-bottom-color: #fff;
+    border: 4px solid rgba(80, 70, 58, .3);
+    border-bottom-color: #866895;
     border-radius: 50%;
     height: 50px;
     left: 50%;
@@ -652,7 +713,7 @@ body.compensate-for-scrollbar {
     }
 
     .fancybox-slide--image .fancybox-close-small {
-        background: #4e4e4e;
+        background: rgba(36, 31, 25, .6);
         color: #f2f4f6;
         height: 36px;
         opacity: 1;
@@ -861,7 +922,7 @@ body.compensate-for-scrollbar {
 }
 
 .fancybox-thumbs__list a::before {
-    border: 6px solid #ff5268;
+    border: 6px solid #866895;
     bottom: 0;
     content: '';
     left: 0;

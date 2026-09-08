@@ -48,97 +48,96 @@
 
     <div class="wrapper">
 
-        <div class="logo_bar">
-            <img class="wrapped_logo" src="/images/logo.png" height="58px" align="left">
-                <h1><a href="/index.html">Idiomind</a></h1>
-                <p>Idiomind is a tool for language learners seeking to enhance their language skills</p>
-
-                <div style="opacity: 0.60; font-weight: bold; font-family: system-ui; text-align: right;font-size: 0.9em;"><a href="/donate.html">Donate</a></div>
-
-        </div>
-
-        <div class="header_bar">
-            <div class="navigation_bar" align="left">
-                <a class="current_category" href="index.html" onfocus="this.blur();">Introduction</a>
-                <a class="category" href="help.html" onfocus="this.blur();">Getting started</a>
-                <a class="category" href="library.html" onfocus="this.blur();">Library</a>
-                <a class="category" href="/news/index.html" onfocus="this.blur();">News</a>
-                <a class="category" href="contact.html" onfocus="this.blur();">Contact</a>
-
+        <header class="site-header">
+            <div class="brand">
+                <img class="brand-mark" src="/images/logo.png" alt="Idiomind logo">
+                <a class="brand-wordmark" href="/index.html">Idiomind</a>
             </div>
-        </div>
+            <nav class="site-nav" aria-label="Main navigation">
+                <a class="site-nav-link current" href="index.html" onfocus="this.blur();">Introduction</a>
+                <a class="site-nav-link" href="help.html" onfocus="this.blur();">Getting started</a>
+                <a class="site-nav-link" href="library.html" onfocus="this.blur();">Library</a>
+                <a class="site-nav-link" href="/news/index.html" onfocus="this.blur();">News</a>
+                <a class="site-nav-link" href="contact.html" onfocus="this.blur();">Contact</a>
+            </nav>
+            <a class="site-donate" href="/donate.html">Donate</a>
+        </header>
 
-        <div class="content_wrapper">
+        <main class="page-main">
 
+            <section class="hero">
+                <p class="hero-kicker">Build a language from real life</p>
+                <h1 class="hero-title">Idiomind</h1>
+                <p class="hero-lead">
+                    Turn the words, phrases, and sentences you find every day into language you can confidently use.
+                </p>
+                <div class="hero-actions">
+                    <a class="btn btn-primary" href="/help.html">Create your first topic</a>
+                    <a class="btn btn-ghost" href="/library.html">Explore the library</a>
+                </div>
+            </section>
 
-            <div class="content">
-
+            <section class="prose">
                 <p>
-                    Language learners are always in search of new words and phrases. Idiomind can assist you in your language learning journey by allowing you to save and practice the words and phrases you come across every day.
+                    Idiomind is a personal study space for the language you encounter while reading, watching, working, travelling, or talking to others. Save what matters, organize it into topics, and revisit it until it feels natural.
                 </p>
-                <br>
-                <h2>
-                    Features
-                </h2>
+            </section>
 
+            <section class="features">
+                <h2 class="section-title">How it works</h2>
+                <ul class="features-list">
+                    <li><strong>Capture.</strong> Save a useful word, phrase, or sentence in seconds.</li>
+                    <li><strong>Understand.</strong> Add a translation, pronunciation, image, or note about when to use it.</li>
+                    <li><strong>Practice.</strong> Review your topics over time and strengthen the language that matters to you.</li>
+                </ul>
+            </section>
+<br>
+            <section class="prose">
+                <h2 class="section-title">Learn language in context</h2>
                 <p>
-                    <ul>
-                    <li>Take notes on the go</li>
-                    <li>Words and phrases pronunciation</li>
-                    <li>Automatic translation using Google Translate</li>
-                    <li>Practices</li>
-                    <li>Track your progress through reviews to reinforce your learning</li>
-                    <li>Customize up to 10 languages to learn</li>
-                    <li>User-friendly interface available in English, Spanish, Portuguese, French, and Italian</li>
-                    </ul>
+                    Don’t collect isolated words. Keep the full phrase where you found it, together with its meaning and context. You will recognize it more easily—and know when to use it.
                 </p>
-                <br>
-                <h2>
-                    Usage Example
-
-                </h2>
-
-                <p>Usage Example: Taking note of words and sentences from a PDF document<br>
-                Here is an example of how to take notes on words and sentences from a PDF document using Idiomind:</p><br><br>
-                    <iframe width="285" height="160" src="https://www.youtube.com/embed/HFvcQjlVHcA?rel=0&showinfo=0" frameborder="0" allowfullscreen></iframe>
-                </p>
-
-                <br>
-                <h2>
-                    Install / Download
-                </h2>
-
-                <p>You can install Idiomind through the terminal using the following commands:<br></p>
-                <p><code>add-apt-repository ppa:robinpalat/idiomind<br>
-                apt-get update<br>
-                apt-get install idiomind</code>
-                </p>
-             <br>
+                <h2 class="section-title">Built around your goals</h2>
                 <p>
-                    Alternatively, you can download it from sourceforge.net.<br>However, the recommended method is to use the above commands for installation. </p>
-                    <a href="https://sourceforge.net/projects/idiomind/files/latest/download"><img alt="Download Idiomind" src="https://a.fsdn.com/con/app/sf-download-button" width=276 height=48 srcset="https://a.fsdn.com/con/app/sf-download-button?button_size=2x 2x"></a>
-                <br>
-                <br>
-            </div>
+                    Create topics for travel, work, films, books, daily conversations, or any subject you care about. Idiomind adapts to the language you want to use, not the other way around.
+                </p>
+                <h2 class="section-title">Built with Bash</h2>
+                <p>
+                    The Linux version of Idiomind is built primarily around Bash shell scripts and native Linux utilities, with YAD providing its graphical dialogs and interface elements. This keeps the application lightweight and closely integrated with the Unix environment. <a href="/about.html">Learn about the technical architecture.</a>
+                </p>
+            </section>
 
-        </div>
+            <section class="usage">
+                <h2 class="section-title">Usage example</h2>
+                <p class="section-note">
+                    See how a phrase from a document becomes a note you can understand, practise, and review later.
+                </p>
+                <div class="media-frame">
+                    <iframe width="385" height="260" src="https://www.youtube.com/embed/HFvcQjlVHcA?rel=0&showinfo=0" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </section>
 
+            <section class="install" id="install">
+                <h2 class="section-title">Install / Download</h2>
+                <h3>Install on Ubuntu or Debian</h3>
+                <p class="section-note">On Ubuntu or another Debian-based distribution, open <b>Terminal</b> and run these commands one at a time. Enter your administrator password if prompted; no characters will appear while you type it.</p>
+                <pre><code>sudo add-apt-repository ppa:robinpalat/idiomind
+sudo apt-get update
+sudo apt-get install idiomind</code></pre>
+                <p class="section-note">
+                    Not using a Debian-based distribution? You can download Idiomind from SourceForge instead.
+                </p>
+                <a href="https://sourceforge.net/projects/idiomind/files/latest/download"><img alt="Download Idiomind" src="https://a.fsdn.com/con/app/sf-download-button" width=276 height=48 srcset="https://a.fsdn.com/con/app/sf-download-button?button_size=2x 2x"></a>
+            </section>
+
+        </main>
 
     </div>
-    <div class="footer">
 
+    <footer class="site-footer">
+        <p>&copy; 2026 <a href="https://idiomind.sourceforge.io">Idiomind</a></p>
+    </footer>
 
-        <span>
-            <p>
-            <small>&copy; 2023 <a href="https://idiomind.sourceforge.io">Idiomind Project </a><br><br>
-
-
-
-            </small>
-            </p>
-            </span>
-
-    </div>
 </body>
 
 </html>
