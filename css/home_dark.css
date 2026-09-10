@@ -1,0 +1,245 @@
+@charset "utf-8";
+
+.plus {
+	background: #E0F3DD;
+	border: 1px solid #91E37C;
+    border-radius: 4px;
+/*
+    color: #496940;
+*/
+}
+
+
+a img {
+    border: none;
+    vertical-align:middle;
+}
+
+
+img.expand { 
+	-webkit-filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+}
+
+
+.content {
+    padding: 10px 0;
+    width: 100%;
+    float: left;
+    font-family: Verdana, Geneva, sans-serif;
+    color: #999;
+    font-weight: bold;
+    font-size: 10px;
+}
+
+
+#content[role="main"]{
+	border-top: 0px;
+	margin: 0px auto 0;
+	padding: 0px 0 0 0;
+    width: 900px;
+    max-width: 1160px;
+    min-width: 780px;
+    border-bottom-right-radius:1em;
+	border-bottom-left-radius:1em;
+	background: #D8E2EB;
+	background: -moz-linear-gradient(top, #D8E2EB 10%,#F0F2F5 50%); 
+    background: -webkit-linear-gradient(top, #D8E2EB 10%,#F0F2F5 50%);
+    background: linear-gradient(to bottom, #D8E2EB 10%,#F0F2F5 50%); 
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#D8E2EB', endColorstr='#F0F2F5',GradientType=0 );
+}
+
+
+.content ul div, .content ol { 
+    padding: 0 55px 15px 30px;
+}
+
+
+.rss {
+    padding: 10px 0;
+    position: relative;
+    clear: both;
+    font-size: 8px;
+}
+
+
+.langlabel{ 
+	color:#929292; text-decoration: none;font-size: 90%;font-weight: normal;
+}
+
+.titlefield{
+	color:#515F68; text-decoration: none;font-size: 14px;font-weight: normal;
+}
+ 
+.labelfield{ 
+	color:#51A536; font-size: 12px;
+}
+
+.datefield{ 
+	color:gray; font-size: 70%;
+}
+
+#rssfeeds a{
+	color: #515F68;text-decoration: none;font-weight: normal;font-size: 14px%;
+}
+#rssfeeds p{
+	margin-bottom: 4px;
+}
+
+
+.tooltip1, .tooltip2{
+    display: inline;
+    position: relative;
+    border-radius: 5px;
+}
+
+
+.tooltip1:hover:after, .tooltip2:hover:after{
+    background: rgba(250,254,255,0.7);
+    border-radius: 5px;
+    bottom: 20px;
+    color: #474545;
+    font-size: 10px;
+    left: -62px;
+    padding: 5px 5px;
+    position: absolute;
+    z-index: 98;
+    width: 120px;
+    font-style: italic;
+}
+
+
+.tooltip1:hover:after{
+    content: attr(label);
+}
+
+
+.tooltip2:hover:after{
+    content: attr(tooltip);
+}
+
+.userbutton {
+	color:#F8F8F8;
+	cursor:pointer;
+	font-weight: normal;
+}
+
+
+/*
+html,body,div,span,center,img,a,footer,header,hgroup,menu,nav,section,summary,time,mark,audio,video{
+  margin:0;
+  padding:0;
+  border:0;
+  outline:0;
+  vertical-align:baseline;
+  
+}
+
+
+article,footer,header,hgroup,main,menu,nav,section{
+  display:block;
+}
+
+
+nav ul{
+  list-style:none;
+}
+*/
+
+
+#categories a:active , #categories a:focus{
+	position: relative;
+	top: 3px;
+	display: block;
+}
+
+.group:after {
+	content: ".";
+	display: block;
+	height: 0;
+	visibility: hidden;
+	clear: both;
+}
+
+
+#content{
+	-moz-box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+	-webkit-box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+	box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+
+
+.circle-count {
+    text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+	position: relative;
+	vertical-align: middle;
+    left: -15px;
+    top: -35px;
+    z-index: 1000;
+    text-align: center;
+    font-weight: bold;
+    font-size: 12px;
+    color: rgba(215,215,215,0.9);
+    font-style: italic;
+}
+
+
+
+.feed-lists {
+	font-size: 14px;
+	position: relative;
+	text-align: left;
+	margin-left:50px;
+	float: left;
+	width: 90%;
+	padding:0px 0px 25px 30px;
+	color:"#E30000";
+	line-height:1.6em;
+	font: Verdana, Arial, Helvetica, sans-serif;
+}
+
+.floating-box {
+    float: left;
+    margin-right: 10px;
+    margin-left: 25px;
+    padding-bottom: 25px;
+    font-size: "3";
+    font-family: "verdana";
+    color: "#312D2D";
+    text-align: center;
+}
+
+
+img.expand { 
+	width: 110px; height: 110px;
+	-webkit-filter: drop-shadow(2px 3px 3px rgba(0,0,0,0.3));
+    filter: drop-shadow(2px 3px 3px rgba(0,0,0,0.3));
+}
+
+
+.floating-box img {
+    display: block;
+    margin: 0 auto;
+}
+
+.langtitle {
+    font-size: 29px;
+	text-shadow: 0px 0px 15px #A1A8BB;
+}
+
+
+.sentenceweek {
+
+}
+
+
+.sentencew-content {
+
+}
+
+
+.footer {
+
+}
+
