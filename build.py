@@ -48,11 +48,21 @@ SKIP_FILES_ROOT = {
 STATIC_HTML = [
     "help.html",
     "library.html",
-    "contact.html",
+    "about.html",
     "donate.html",
     "maintenance.html",
     "privacypolicy.htm",
 ]
+
+# Editorial content is maintained in Markdown; HTML files remain templates.
+MARKDOWN_CONTENT = {
+    "index.html": "content/index.md",
+    "help.html": "content/help.md",
+    "about.html": "content/about.md",
+    "maintenance.html": "content/maintenance.md",
+    "news/page1.html": "content/news/page1.md",
+    "news/page2.html": "content/news/page2.md",
+}
 
 GA_SNIPPET = """<script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -227,7 +237,6 @@ def generate_library_header(lang, uplang):
                     <a class="site-nav-link current" href="/{esc(lang)}/" onfocus="this.blur();">{esc(uplang)}</a>
                     <a class="site-nav-link" href="/library.html" onfocus="this.blur();">Library</a>
                     <a class="site-nav-link" href="/news/index.html" onfocus="this.blur();">News</a>
-                    <a class="site-nav-link" href="/contact.html" onfocus="this.blur();">Contact</a>
                 </nav>
                 <div class="site-tools">
                     <a class="site-tool" href="#" onclick="underc();return false;">Plus</a>
@@ -242,63 +251,170 @@ def generate_library_header(lang, uplang):
             </header>"""
 
 
-def generate_library_page(languages_data):
-    """Generate the root library.html (selector de idioma + grilla de topics).
+def generate_library_category_view(lang, cat_name, idmnd_files):
+    """Generate a category topic list inside the Library page."""
+    rows = []
 
-    - Si NO hay cookie `language`: se muestra la presentación que invita a
-      elegir el idioma que se está aprendiendo.
-    - Al elegir un idioma se guarda la cookie `language` (idioma target) y la
-      grilla de contenidos de ese idioma se presenta en esta misma página,
-      abriendo los topics dentro del visor embebido.
-    - La siguiente visita a la pestaña Library entra directamente en la
-      grilla del idioma guardado.
-    """
+    for f in sorted(idmnd_files, key=lambda x: x.name.lower()):
+        name = f.stem
+        namehref = f.name
+        view_url = (
+            f"/{lang}/view.html"
+            f"?l={url_quote(lang)}"
+            f"&c={url_quote(cat_name)}"
+            f"&set={url_quote(name)}"
+        )
+        download_url = (
+            f"/{lang}/{url_quote(cat_name)}/{url_quote(namehref)}"
+        )
+
+        rows.append(f"""<tr class="library-topic-row">
+            <td class="library-topic-icon">
+                <a data-fancybox data-type="iframe"
+                   data-small-btn="true" href="{view_url}">
+                    <img src="/images/idmnd.png" alt="">
+                </a>
+            </td>
+            <td class="library-topic-title">
+                <a data-fancybox data-type="iframe"
+                   data-small-btn="true" href="{view_url}">
+                    {esc(name)}
+                </a>
+            </td>
+            <td class="library-topic-download">
+                <a href="{download_url}">
+                    <img src="/images/dl.png" alt="Download">
+                </a>
+            </td>
+        </tr>""")
+
+    label = esc(cat_name.replace("-", " ").title())
+    count = len(idmnd_files)
+    word = "topic" if count == 1 else "topics"
+
+    return f"""<section class="library-category-view"
+                 data-lang="{esc(lang)}"
+                 data-category="{esc(cat_name)}"
+                 hidden>
+    <div class="library-category-head">
+        <div class="library-category-info">
+            <h2 class="library-category-title">
+                <i class="fa fa-folder-o" aria-hidden="true"></i>
+                {label}
+            </h2>
+            <p class="library-category-count">{count} {word}</p>
+        </div>
+        <a class="library-category-back" href="#"
+           onclick="return libCloseCategory('{esc(lang)}');">
+            ← Back to {esc(lang.capitalize())}
+        </a>
+    </div>
+
+    <table class="library-topic-table">
+        <tbody>
+            {"".join(rows)}
+        </tbody>
+    </table>
+</section>
+"""
+
+
+def generate_library_page(languages_data):
+    """Generate the root library.html with in-page category navigation."""
     picker_items = []
     lang_sections = []
     lang_js = []
+
     for lang, categories in languages_data:
         uplang = lang.capitalize()
         cat_items = []
+        category_views = []
         total = 0
+
         for cat_name, idmnd_files in categories:
             count = len(idmnd_files)
             total += count
+
             if count > 0:
-                cat_items.append(generate_category_item(
-                    lang, cat_name, count, "box.html",
-                    attrs='data-fancybox data-type="iframe" data-small-btn="true"'))
+                label = esc(cat_name.replace("-", " ").title())
+                word = "topic" if count == 1 else "topics"
+
+                # Category navigation stays inside Library.
+                cat_items.append(
+                    f"""<a class="category-item" href="#"
+                           onclick="return libOpenCategory('{esc(lang)}', '{esc(cat_name)}');">
+                        <span class="category-name">{label}</span>
+                        <span class="category-count">{count} {word}</span>
+                        <i class="fa fa-folder-o category-icon" aria-hidden="true"></i>
+                    </a>"""
+                )
+
+                category_views.append(
+                    generate_library_category_view(
+                        lang, cat_name, idmnd_files
+                    )
+                )
+
         cat_html = "\n".join(cat_items)
-        latest = generate_latest_html(lang, categories).replace(' class="btn btn-primary"', '')
+        category_views_html = "\n".join(category_views)
+        latest = generate_latest_html(lang, categories).replace(
+            ' class="btn btn-primary"', ''
+        )
+
         word = "topic" if total == 1 else "topics"
         lang_js.append(f'"{lang}"')
+
         picker_items.append(f"""<li>
-                    <a class="language-option" data-lang="{lang}" href="/{lang}/" onclick="return libPick('{lang}');">
+                    <a class="language-option"
+                       data-lang="{esc(lang)}"
+                       href="/{esc(lang)}/"
+                       onclick="return libPick('{esc(lang)}');">
                         <span class="language-name">{esc(uplang)}</span>
                         <span class="language-count">{total} {word}</span>
                         <i class="fa fa-language language-icon" aria-hidden="true"></i>
                     </a>
                 </li>""")
-        lang_sections.append(f"""<section class="library-topic-view" data-lang="{lang}" hidden>
+
+        lang_sections.append(f"""<section class="library-topic-view"
+                                     data-lang="{esc(lang)}"
+                                     hidden>
                     <header class="library-head">
                         <p class="page-kicker">Topic library</p>
                         <h1 class="page-title">{esc(uplang)}</h1>
-                        <p class="library-switch"><a href="#" onclick="return libPick('');">Change language</a></p>
                     </header>
-                    <table width='100%'>
-                        <tr>
-                            <td valign="top">
-                                <div class="feed-lists">
-                                    <h1><i class="fa fa-bolt" aria-hidden="true"></i> Latest published</h1>
+
+                    <div class="library-language-home">
+                        <p class="library-switch">
+                            <a href="#" onclick="return libPick('');">
+                                Change language
+                            </a>
+                        </p>
+                        <table width="100%">
+                            <tr>
+                                <td valign="top">
+                                    <div class="feed-lists">
+                                        <h1>
+                                            <i class="fa fa-bolt"
+                                               aria-hidden="true"></i>
+                                            Latest published
+                                        </h1>
 {latest}
-                                </div>
-                            </td>
-                            <td valign="top">
-                                <div class="fav-lists" id="favlists-{lang}"></div>
-                            </td>
-                        </tr>
-                    </table>
-                    <div class="category-grid">
+                                    </div>
+                                </td>
+                                <td valign="top">
+                                    <div class="fav-lists"
+                                         id="favlists-{esc(lang)}"></div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <div class="category-grid">
 {cat_html}
+                        </div>
+                    </div>
+
+                    <div class="library-category-views">
+{category_views_html}
                     </div>
                 </section>""")
 
@@ -306,100 +422,408 @@ def generate_library_page(languages_data):
     sections_html = "\n".join(lang_sections)
     langs_js = ",".join(lang_js)
 
-    return f"""<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+    return f"""<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
 <html>
-<head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<head>
+    <meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
     <meta charset="utf-8">
     <title>Idiomind | Library</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="keywords" content="learn english free, learn english online, learn english grammar, learn english vocabulary, free English lessons, english vocabulary, idiom library, ESL, EFL, pronunciation, grammar, vocabulary, tests, lessons, quiz, resources"/>
-    <meta name="description" content="Idiomind is a valuable tool for language learners seeking to enhance their language skills. Choose the language you are learning and explore the topics shared by the community."/>
+    <meta name="keywords" content="learn english free, learn english online, learn english grammar, learn english vocabulary, free English lessons, english vocabulary, idiom library, ESL, EFL, pronunciation, grammar, vocabulary, tests, lessons, quiz, resources">
+    <meta name="description" content="Idiomind is a valuable tool for language learners seeking to enhance their language skills. Choose the language you are learning and explore the topics shared by the community.">
 
     <link rel="stylesheet" type="text/css" href="/css/classic.css">
     <link rel="stylesheet" type="text/css" href="/css/fonts.css">
-    <link href="/css/fa/css/font-awesome.css" rel="stylesheet" type="text/css" />
-
+    <link href="/css/fa/css/font-awesome.css" rel="stylesheet" type="text/css">
     <link rel="shortcut icon" href="/favicon.ico?v=2" type="image/x-icon">
-    <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32"/>
-    <link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16"/>
-    <link rel="image_src" href="/images/logo.png"/><!--formatted-->
+
+    <style>
+        .library-category-views {{
+            width: 100%;
+        }}
+        /* Keep the Library surface full-height so the footer stays at
+           the bottom even when a category contains very few topics. */
+        .library-category-view {{
+            min-height: calc(100vh - 180px);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }}
+
+        .library-language-home {{
+            min-height: calc(100vh - 180px);
+            box-sizing: border-box;
+        }}
+
+        .library-category-view .library-topic-table {{
+            flex: 0 0 auto;
+        }}
+
+
+        /* Topic viewer: compact enough to fit comfortably on laptop screens. */
+        .library-viewer-frame {{
+            width: 100%;
+            height: 80vh !important;
+            min-height: 0;
+            box-sizing: border-box;
+        }}
+
+        /* Topic statistics: keep the metrics aligned to the left. */
+        .topic-stats,
+        .topic-meta,
+        .stats {{
+            text-align: left !important;
+        }}
+
+        .library-category-view {{
+            width: 100%;
+            box-sizing: border-box;
+        }}
+
+        .library-category-head {{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            width: 100%;
+            margin-top: 0;
+            margin-bottom: 32px;
+        }}
+
+        .library-category-info {{
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }}
+
+        .library-category-title {{
+            margin: 0;
+            display: flex;
+            align-items: center;
+            min-width: 0;
+        }}
+
+        .library-category-count {{
+            margin: 0;
+            white-space: nowrap;
+        }}
+
+        .library-category-back {{
+            margin-left: auto;
+            white-space: nowrap;
+            text-align: right;
+        }}
+
+        @media (max-width: 600px) {{
+            .library-category-head {{
+                align-items: flex-start;
+            }}
+
+            .library-category-info {{
+                min-width: 0;
+            }}
+
+            .library-category-back {{
+                white-space: normal;
+            }}
+        }}
+
+        .library-category-back {{
+            display: inline-block;
+            margin-bottom: 12px;
+            color: #666;
+            text-decoration: none;
+            font-size: 13px;
+        }}
+
+        .library-category-back:hover {{
+            text-decoration: underline;
+        }}
+
+        .library-category-title {{
+            margin: 0;
+            color: #565A6E;
+            font-family: Verdana, sans-serif;
+            font-size: 22px;
+            font-weight: normal;
+            text-align: left;
+        }}
+
+        .library-category-title .fa {{
+            margin-right: 7px;
+        }}
+
+        .library-category-count {{
+            margin: 5px 0 0;
+            color: #888;
+            font-size: 13px;
+            text-align: left;
+        }}
+
+        .library-topic-table {{
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            column-gap: 24px;
+        }}
+
+        .library-topic-table tbody {{
+            display: contents;
+        }}
+
+        .library-topic-row {{
+            display: grid;
+            grid-template-columns: 48px minmax(0, 1fr) 42px;
+            align-items: center;
+            min-height: 58px;
+            height: auto;
+            border-bottom: 1px solid #e5e5e5;
+        }}
+
+        .library-topic-row td {{
+            vertical-align: middle;
+        }}
+
+        .library-topic-icon {{
+            width: auto;
+            text-align: center;
+        }}
+
+        .library-topic-icon img {{
+            width: 30px;
+            height: 30px;
+            vertical-align: middle;
+        }}
+
+        .library-topic-title {{
+            min-width: 0;
+            text-align: left;
+            padding: 9px 10px;
+        }}
+
+        .library-topic-title a {{
+            display: block;
+            color: #565A6E;
+            font-family: Verdana, sans-serif;
+            font-size: 14px;
+            line-height: 1.4;
+            text-align: left;
+            text-decoration: none;
+            overflow-wrap: anywhere;
+        }}
+
+        .library-topic-title a:hover {{
+            text-decoration: underline;
+        }}
+
+        .library-topic-download {{
+            width: auto;
+            text-align: center;
+        }}
+
+        .library-topic-download img {{
+            width: 20px;
+            height: 20px;
+            opacity: 0.65;
+            vertical-align: middle;
+        }}
+
+        .library-topic-download a:hover img {{
+            opacity: 1;
+        }}
+
+        @media (max-width: 700px) {{
+            .library-topic-table {{
+                grid-template-columns: 1fr;
+            }}
+        }}
+
+        @media (max-width: 600px) {{
+            .library-topic-row {{
+                grid-template-columns: 42px minmax(0, 1fr) 36px;
+            }}
+
+            .library-topic-icon img {{
+                width: 26px;
+                height: 26px;
+            }}
+
+            .library-topic-title {{
+                padding: 8px 6px;
+            }}
+
+            .library-topic-title a {{
+                font-size: 13px;
+            }}
+        }}
+    </style>
+
+    <script>
+        if ('scrollRestoration' in history) {{
+            history.scrollRestoration = 'manual';
+        }}
+        window.addEventListener('load', function () {{
+            window.scrollTo(0, 0);
+        }});
+    </script>
 
     <script type="text/javascript">
-        /* Idioma target de aprendizaje, guardado en la cookie "language"
-           (la misma cookie que establecen las páginas de cada idioma). */
         var LIB_COOKIE = 'language';
         var LIB_LANGS = [{langs_js}];
+
         function libGetCookie() {{
             var name = LIB_COOKIE + '=';
             var ca = document.cookie.split(';');
+
             for (var i = 0; i < ca.length; i++) {{
                 var c = ca[i];
                 while (c.charAt(0) == ' ') c = c.substring(1);
+
                 if (c.indexOf(name) == 0) {{
-                    try {{ return decodeURIComponent(c.substring(name.length, c.length)); }}
-                    catch (e) {{ return c.substring(name.length, c.length); }}
+                    try {{
+                        return decodeURIComponent(
+                            c.substring(name.length, c.length)
+                        );
+                    }} catch (e) {{
+                        return c.substring(name.length, c.length);
+                    }}
                 }}
             }}
+
             return '';
         }}
+
         function libSetCookie(value) {{
             var d = new Date();
             d.setTime(d.getTime() + (365 * 24 * 60 * 60 * 1000));
-            document.cookie = LIB_COOKIE + '=' + encodeURIComponent(value) + '; expires=' + d.toUTCString() + '; path=/; SameSite=Lax';
+            document.cookie =
+                LIB_COOKIE + '=' + encodeURIComponent(value) +
+                '; expires=' + d.toUTCString() +
+                '; path=/; SameSite=Lax';
         }}
+
         function libGetCookieValue(name) {{
             var n = name + '=';
             var ca = document.cookie.split(';');
+
             for (var i = 0; i < ca.length; i++) {{
                 var c = ca[i];
                 while (c.charAt(0) == ' ') c = c.substring(1);
+
                 if (c.indexOf(n) == 0) {{
-                    try {{ return decodeURIComponent(c.substring(n.length, c.length)); }}
-                    catch (e) {{ return c.substring(n.length, c.length); }}
+                    try {{
+                        return decodeURIComponent(
+                            c.substring(n.length, c.length)
+                        );
+                    }} catch (e) {{
+                        return c.substring(n.length, c.length);
+                    }}
                 }}
             }}
+
             return '';
         }}
+
         function libShowView(lang) {{
-            var views = document.getElementsByClassName('library-topic-view');
+            var views =
+                document.getElementsByClassName('library-topic-view');
             var found = false;
+
             for (var i = 0; i < views.length; i++) {{
-                var on = views[i].getAttribute('data-lang') === lang;
+                var on =
+                    views[i].getAttribute('data-lang') === lang;
+
                 views[i].hidden = !on;
-                if (on) found = true;
+
+                if (on) {{
+                    found = true;
+
+                    var home =
+                        views[i].querySelector('.library-language-home');
+                    var categories =
+                        views[i].querySelector('.library-category-views');
+
+                    if (home) home.hidden = false;
+                    if (categories) categories.hidden = true;
+
+                    var categoryViews =
+                        views[i].getElementsByClassName(
+                            'library-category-view'
+                        );
+
+                    for (var j = 0; j < categoryViews.length; j++) {{
+                        categoryViews[j].hidden = true;
+                    }}
+                }}
             }}
-            var picker = document.getElementById('library-picker');
-            if (picker) picker.hidden = (lang && found);
+
+            var picker =
+                document.getElementById('library-picker');
+
+            if (picker) picker.hidden = !!(lang && found);
+
             libShowPinned(lang);
         }}
+
         function libListFavs(lang) {{
-            var faves = libGetCookieValue(lang.charAt(0) + 'PINS');
+            var faves =
+                libGetCookieValue(lang.charAt(0) + 'PINS');
+
             if (!faves) return;
+
             faves = faves.split('|');
-            var div = document.getElementById('favlists-' + lang);
+
+            var div =
+                document.getElementById('favlists-' + lang);
+
             if (!div || faves.length < 1) return;
-            var out = '<h1>Pinned <i class="fa fa-thumb-tack" aria-hidden="true"></i></h1>';
-            var visibleFaves = Math.min(faves.length, 6);
+
+            var out =
+                '<h1>Pinned ' +
+                '<i class="fa fa-thumb-tack" aria-hidden="true"></i>' +
+                '</h1>';
+
+            var visibleFaves =
+                Math.min(faves.length, 6);
+
             for (var i = 0; i < visibleFaves; i++) {{
                 var fav = faves[i];
                 if (!fav) continue;
-                out += '<a data-fancybox data-type="iframe" data-small-btn="true" '
-                    + 'href="/' + lang + '/view.html?l=' + lang + '&c=fav&set=' + fav + '">'
-                    + fav + '</a><br>';
+
+                out +=
+                    '<a data-fancybox data-type="iframe" ' +
+                    'data-small-btn="true" ' +
+                    'href="/' + lang +
+                    '/view.html?l=' + lang +
+                    '&c=fav&set=' + encodeURIComponent(fav) + '">' +
+                    fav +
+                    '</a><br>';
             }}
+
             div.innerHTML = out;
         }}
+
         function libShowPinned(lang) {{
-            var views = document.getElementsByClassName('library-topic-view');
+            var views =
+                document.getElementsByClassName('library-topic-view');
+
             for (var i = 0; i < views.length; i++) {{
                 var l = views[i].getAttribute('data-lang');
+
                 if (l && l !== lang) {{
-                    var d = document.getElementById('favlists-' + l);
+                    var d =
+                        document.getElementById('favlists-' + l);
+
                     if (d) d.innerHTML = '';
                 }}
             }}
+
             if (lang) libListFavs(lang);
         }}
+
         function libPick(lang) {{
             if (lang) {{
                 libSetCookie(lang);
@@ -407,19 +831,77 @@ def generate_library_page(languages_data):
             }} else {{
                 libShowView('');
             }}
+
             return false;
         }}
+
+        function libOpenCategory(lang, category) {{
+            var views =
+                document.getElementsByClassName('library-topic-view');
+            var selectedView = null;
+
+            for (var i = 0; i < views.length; i++) {{
+                var match =
+                    views[i].getAttribute('data-lang') === lang;
+
+                views[i].hidden = !match;
+
+                if (match) selectedView = views[i];
+            }}
+
+            if (!selectedView) return false;
+
+            var home =
+                selectedView.querySelector('.library-language-home');
+            var categoryContainer =
+                selectedView.querySelector('.library-category-views');
+
+            if (home) home.hidden = true;
+            if (categoryContainer) categoryContainer.hidden = false;
+
+            var categoryViews =
+                selectedView.getElementsByClassName(
+                    'library-category-view'
+                );
+
+            for (var j = 0; j < categoryViews.length; j++) {{
+                categoryViews[j].hidden =
+                    categoryViews[j].getAttribute('data-category') !== category;
+            }}
+
+            var picker =
+                document.getElementById('library-picker');
+
+            if (picker) picker.hidden = true;
+
+            window.scrollTo(0, 0);
+
+            return false;
+        }}
+
+        function libCloseCategory(lang) {{
+            libShowView(lang);
+            return false;
+        }}
+
         (function() {{
             function init() {{
                 var saved = libGetCookie();
-                console.log('LIB: cookie value =', JSON.stringify(saved));
+
                 if (saved) {{
                     var known = false;
-                    for (var i = 0; i < LIB_LANGS.length; i++) {{ if (LIB_LANGS[i] === saved) known = true; }}
-                    console.log('LIB: known =', known);
+
+                    for (var i = 0; i < LIB_LANGS.length; i++) {{
+                        if (LIB_LANGS[i] === saved) {{
+                            known = true;
+                            break;
+                        }}
+                    }}
+
                     if (known) libShowView(saved);
                 }}
             }}
+
             if (document.readyState === 'loading') {{
                 document.addEventListener('DOMContentLoaded', init);
             }} else {{
@@ -429,78 +911,156 @@ def generate_library_page(languages_data):
     </script>
 
     <script>
+        var LIB_VIEWER_RETURN_LANG = '';
+        var LIB_VIEWER_RETURN_CATEGORY = '';
+
         function libOpenViewer(href) {{
-            var picker = document.getElementById('library-picker');
-            var views = document.getElementsByClassName('library-topic-view');
-            var viewer = document.getElementById('library-viewer');
-            var frame = document.getElementById('library-viewer-frame');
-            var label = document.getElementById('library-viewer-label');
+            var picker =
+                document.getElementById('library-picker');
+            var views =
+                document.getElementsByClassName('library-topic-view');
+            var viewer =
+                document.getElementById('library-viewer');
+            var frame =
+                document.getElementById('library-viewer-frame');
+            var label =
+                document.getElementById('library-viewer-label');
+
             var url = new URL(href, window.location.href);
             var category = url.searchParams.get('c');
+
+            LIB_VIEWER_RETURN_LANG =
+                url.searchParams.get('l') || '';
+
+            LIB_VIEWER_RETURN_CATEGORY =
+                category || '';
+
             if (!category) {{
-                var parts = url.pathname.split('/').filter(Boolean);
-                category = parts[parts.length - 1] === 'index.html' ? parts[parts.length - 2] : '';
+                var parts =
+                    url.pathname.split('/').filter(Boolean);
+
+                category =
+                    parts[parts.length - 1] === 'index.html'
+                    ? parts[parts.length - 2]
+                    : '';
             }}
-            category = decodeURIComponent(category || '').replace(/[-_]+/g, ' ');
-            if (category === 'fav') category = 'Pinned';
-            else if (category) category = category.replace(/\b\w/g, function (letter) {{ return letter.toUpperCase(); }});
-            if (label) label.textContent = category || 'Topic viewer';
-            for (var i = 0; i < views.length; i++) views[i].hidden = true;
+
+            category =
+                decodeURIComponent(category || '')
+                .replace(/[-_]+/g, ' ');
+
+            if (category === 'fav') {{
+                category = 'Pinned';
+            }} else if (category) {{
+                category = category.replace(
+                    /\\b\\w/g,
+                    function(letter) {{
+                        return letter.toUpperCase();
+                    }}
+                );
+            }}
+
+            if (label) {{
+                label.textContent = category || 'Topic viewer';
+            }}
+
+            for (var i = 0; i < views.length; i++) {{
+                views[i].hidden = true;
+            }}
+
             if (picker) picker.hidden = true;
+
             if (viewer && frame) {{
-                frame.onload = function () {{
+                frame.onload = function() {{
                     try {{
-                        var scrollbarStyle = frame.contentDocument.createElement('style');
-                        scrollbarStyle.textContent = 'html {{ scrollbar-width: none; }} html::-webkit-scrollbar {{ width: 0; height: 0; }}';
-                        frame.contentDocument.head.appendChild(scrollbarStyle);
-                        var nestedLinks = frame.contentDocument.querySelectorAll('a[href*="/view.html"]');
+                        var scrollbarStyle =
+                            frame.contentDocument.createElement('style');
+
+                        scrollbarStyle.textContent =
+                            'html {{ scrollbar-width: none; }} ' +
+                            'html::-webkit-scrollbar {{ width: 0; height: 0; }}';
+
+                        frame.contentDocument.head.appendChild(
+                            scrollbarStyle
+                        );
+
+                        var nestedLinks =
+                            frame.contentDocument.querySelectorAll(
+                                'a[href*="/view.html"]'
+                            );
+
                         for (var i = 0; i < nestedLinks.length; i++) {{
-                            nestedLinks[i].onclick = function (event) {{
+                            nestedLinks[i].onclick = function(event) {{
                                 event.preventDefault();
                                 window.parent.libOpenViewer(this.href);
                                 return false;
                             }};
                         }}
-                        frame.contentDocument.addEventListener('click', function (event) {{
-                            var nested = event.target;
-                            while (nested && nested.tagName !== 'A') nested = nested.parentElement;
-                            if (!nested || !/(?:\/)(?:mobile)?view\.html(?:\?|$)/.test(nested.getAttribute('href') || '')) return;
-                            event.preventDefault();
-                            window.parent.libOpenViewer(nested.href);
-                        }});
                     }} catch (error) {{
-                        console.error('Unable to bind embedded library links', error);
+                        console.error(
+                            'Unable to bind embedded library links',
+                            error
+                        );
                     }}
                 }};
-                frame.src = href + (href.indexOf('?') === -1 ? '?' : '&') + 'v=20260906h';
-                setTimeout(function () {{
-                    if (frame.contentDocument && frame.contentDocument.readyState === 'complete' && frame.onload) frame.onload();
-                }}, 0);
+
+                frame.src =
+                    href +
+                    (href.indexOf('?') === -1 ? '?' : '&') +
+                    'v=20260911';
+
                 viewer.hidden = false;
-                viewer.scrollIntoView({{ block: 'start' }});
+                window.scrollTo(0, 0);
             }}
+
             return false;
         }}
 
         function libCloseViewer() {{
-            var viewer = document.getElementById('library-viewer');
-            var frame = document.getElementById('library-viewer-frame');
+            var viewer =
+                document.getElementById('library-viewer');
+            var frame =
+                document.getElementById('library-viewer-frame');
+
             if (frame) frame.src = 'about:blank';
             if (viewer) viewer.hidden = true;
+
             var saved = libGetCookie();
-            if (saved) libShowView(saved);
-            else {{
-                var picker = document.getElementById('library-picker');
+
+            if (LIB_VIEWER_RETURN_LANG &&
+                LIB_VIEWER_RETURN_CATEGORY &&
+                LIB_VIEWER_RETURN_CATEGORY !== 'fav') {{
+                libOpenCategory(
+                    LIB_VIEWER_RETURN_LANG,
+                    LIB_VIEWER_RETURN_CATEGORY
+                );
+            }} else if (saved) {{
+                libShowView(saved);
+            }} else {{
+                var picker =
+                    document.getElementById('library-picker');
+
                 if (picker) picker.hidden = false;
             }}
+
+            LIB_VIEWER_RETURN_LANG = '';
+            LIB_VIEWER_RETURN_CATEGORY = '';
+
             return false;
         }}
 
-        document.addEventListener('click', function (event) {{
+        document.addEventListener('click', function(event) {{
             var link = event.target;
-            while (link && link.tagName !== 'A') link = link.parentElement;
+
+            while (link && link.tagName !== 'A') {{
+                link = link.parentElement;
+            }}
+
             if (!link) return;
-            var href = link.getAttribute('href') || '';
+
+            var href =
+                link.getAttribute('href') || '';
+
             if (link.hasAttribute('data-fancybox')) {{
                 event.preventDefault();
                 libOpenViewer(href);
@@ -517,25 +1077,58 @@ def generate_library_page(languages_data):
 
         <header class="site-header">
             <div class="brand">
-                <img class="brand-mark" src="/images/logo.png" alt="Idiomind logo">
-                <a class="brand-wordmark" href="/index.html">Idiomind</a>
+                <img class="brand-mark"
+                     src="/images/logo.png"
+                     alt="Idiomind logo">
+                <a class="brand-wordmark"
+                   href="/index.html">
+                    Idiomind
+                </a>
             </div>
+
             <nav class="site-nav" aria-label="Main navigation">
-                <a class="site-nav-link" href="index.html" onfocus="this.blur();">Introduction</a>
-                <a class="site-nav-link" href="help.html" onfocus="this.blur();">Getting started</a>
-                <a class="site-nav-link current" href="library.html" onfocus="this.blur();">Library</a>
-                <a class="site-nav-link" href="/news/index.html" onfocus="this.blur();">News</a>
-                <a class="site-nav-link" href="contact.html" onfocus="this.blur();">Contact</a>
+                <a class="site-nav-link"
+                   href="index.html"
+                   onfocus="this.blur();">
+                    Introduction
+                </a>
+                <a class="site-nav-link"
+                   href="help.html"
+                   onfocus="this.blur();">
+                    Getting started
+                </a>
+                <a class="site-nav-link current"
+                   href="library.html"
+                   onfocus="this.blur();">
+                    Library
+                </a>
+                <a class="site-nav-link"
+                   href="/news/index.html"
+                   onfocus="this.blur();">
+                    News
+                </a>
             </nav>
-            <a class="site-donate" href="/donate.html">Donate</a>
+
+            <a class="site-donate"
+               href="/donate.html">
+                Donate
+            </a>
         </header>
 
-        <section id="library-picker" class="language-picker">
+        <section id="library-picker"
+                 class="language-picker">
             <header class="library-head">
                 <p class="page-kicker">Idiomind library</p>
-                <h1 class="page-title">Choose the language you are learning</h1>
-                <p class="page-lead">Select the language you are learning to browse the topics shared by the community. Your choice is remembered on this device.</p>
+                <h1 class="page-title">
+                    Choose the language you are learning
+                </h1>
+                <p class="page-lead">
+                    Select the language you are learning to browse the
+                    topics shared by the community. Your choice is remembered
+                    on this device.
+                </p>
             </header>
+
             <ul class="language-list">
 {picker_html}
             </ul>
@@ -543,24 +1136,44 @@ def generate_library_page(languages_data):
 
 {sections_html}
 
-        <section id="library-viewer" class="library-viewer" hidden>
+        <section id="library-viewer"
+                 class="library-viewer"
+                 hidden>
             <div class="library-viewer-head">
-                <p id="library-viewer-label" class="library-viewer-label">Topic viewer</p>
-                <a id="library-viewer-back" class="library-viewer-back" href="#" onclick="return libCloseViewer();">Back to library</a>
+                <p id="library-viewer-label"
+                   class="library-viewer-label">
+                    Topic viewer
+                </p>
+                <a id="library-viewer-back"
+                   class="library-viewer-back"
+                   href="#"
+                   onclick="return libCloseViewer();">
+                    Back to library
+                </a>
             </div>
-            <iframe id="library-viewer-frame" class="library-viewer-frame" title="Topic viewer" loading="lazy" scrolling="yes"></iframe>
+
+            <iframe id="library-viewer-frame"
+                    class="library-viewer-frame"
+                    title="Topic viewer"
+                    loading="lazy"
+                    scrolling="yes"></iframe>
         </section>
 
         <footer class="site-footer">
-            <p>&copy; 2022 <a href="https://idiomind.sourceforge.io">Idiomind Project</a></p>
+            <p>
+                &copy; 2026
+                <a href="https://idiomind.sourceforge.io">
+                    Idiomind Project
+                </a>
+            </p>
         </footer>
 
     </div>
 
 </body>
-
 </html>
 """
+
 
 
 def generate_lang_index(lang, categories):
@@ -581,7 +1194,8 @@ def generate_lang_index(lang, categories):
 <html xmlns="http://www.w3.org/1999/xhtml"/>
 
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="description" content=""/>
     <meta name="author" content=""/>
     <meta name="keywords" content="ESL, EFL, pronunciation, grammar, vocabulary, tests, lessons, quiz, quizzes, resources, lesson, vocabulary, questions, answers"/>
@@ -595,6 +1209,15 @@ def generate_lang_index(lang, categories):
     <link href="/css/home.css" rel="stylesheet" type="text/css" />
     <link href="/css/fa/css/font-awesome.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" type="text/css" href="/js/fancybox/jquery.fancybox.css" media="screen" />
+
+    <script>
+        if ('scrollRestoration' in history) {{
+            history.scrollRestoration = 'manual';
+        }}
+        window.addEventListener('load', function () {{
+            window.scrollTo(0, 0);
+        }});
+    </script>
 
     <script type="text/javascript">
         function setCookie() {{
@@ -732,7 +1355,7 @@ def generate_lang_index(lang, categories):
 
     <footer class="footer">
         <br>
-        <div> &copy 2015-2023 <a href="https://idiomind.sourceforge.io">idiomind</a> Project | <a href="http://idiomind.sourceforge.io/contact.html">Contact</a> | <a href="../privacypolicy.htm">Privacy</a><br><a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">All the content is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike</a>.
+        <div> &copy 2015-2026 <a href="https://idiomind.sourceforge.io">idiomind</a> Project | <a href="../privacypolicy.htm">Privacy</a><br><a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">All the content is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike</a>.
         </div>
         <br>
     </footer>
@@ -812,7 +1435,8 @@ def generate_box(lang, cat_name, idmnd_files):
     return f"""<!doctype html>
 <html>
 <head>
-   <meta charset="UTF-8">
+  <meta charset="UTF-8">
+ <meta charset="UTF-8">
    <link rel="shortcut icon" href="/favicon.ico">
    <title>Topics</title>
    <link rel="stylesheet" href="/css/box.css">
@@ -839,7 +1463,8 @@ def generate_view(lang, css_file="/css/view.css", js_file="/js/view.js"):
     """Generate the view page (flashcards/quiz/viewer)."""
     return f"""<html lang="en">
     <head>
-        <meta charset="utf-8"/>
+       <meta charset="UTF-8">
+ <meta charset="utf-8"/>
         <title>Study</title>
         <meta name="description" content="Flashcards"/>
         <link rel="stylesheet" href="{css_file}"/>
@@ -872,6 +1497,51 @@ def generate_view(lang, css_file="/css/view.css", js_file="/js/view.js"):
             #TopicLanding .topic-note p {{
                 margin: 0; color: #4a4a4a; line-height: 1.6; white-space: pre-wrap;
             }}
+            /* Flashcard score: text only, with colored underline. */
+            #headB .flascards_info {{
+                background: transparent !important;
+                border: 0 !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }}
+
+            #headB .flascards_info td {{
+                background: transparent !important;
+                border: 0 !important;
+                padding: 0 !important;
+            }}
+
+            #headB #score_no,
+            #headB #score_ok {{
+                display: inline-block !important;
+                padding: 0 0 5px !important;
+                margin: 0 28px 0 0 !important;
+                background: transparent !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                color: #474747 !important;
+                font-weight: 700 !important;
+                text-align: left !important;
+                line-height: 1.3;
+                border-bottom: 3px solid !important;
+            }}
+
+            #headB #score_no {{
+                border-bottom-color: #d9534f !important;
+            }}
+
+            #headB #score_ok {{
+                border-bottom-color: #4caf50 !important;
+            }}
+
+            #headB #score_no font,
+            #headB #score_ok font {{
+                color: #474747 !important;
+                font-weight: 700 !important;
+            }}
+
             @media (max-width: 600px) {{
                 #TopicLanding {{ padding: 0 12px 16px; }}
                 #TopicLanding .topic-details {{ font-size: 13px; padding: 9px 10px; }}
@@ -879,26 +1549,31 @@ def generate_view(lang, css_file="/css/view.css", js_file="/js/view.js"):
             }}
         </style>
 
-        <script type="text/javascript"> //  Loading gif
-            function onReady(callback) {{
-                var intervalID = window.setInterval(checkReady, 800);
-
-                function checkReady() {{
-                    if (document.getElementsByTagName('body')[0] !== undefined) {{
-                        window.clearInterval(intervalID);
-                        callback.call(this);
-                    }}
-                }}
+        <script>
+            if ('scrollRestoration' in history) {{
+                history.scrollRestoration = 'manual';
             }}
-
-            function show(id, value) {{
-                document.getElementById(id).style.display = value ? 'block' : 'none';
-            }}
-
-            onReady(function () {{
-                show('page', true);
-                show('loading', false);
+            window.addEventListener('load', function () {{
+                window.scrollTo(0, 0);
             }});
+        </script>
+
+        <script type="text/javascript"> //  Loading gif
+            function showLoading() {{
+                var loadingEl = document.getElementById('loading');
+                var pageEl = document.getElementById('page');
+                if (loadingEl) loadingEl.style.display = 'block';
+                if (pageEl) pageEl.style.display = 'none';
+            }}
+
+            function hideLoading() {{
+                var loadingEl = document.getElementById('loading');
+                var pageEl = document.getElementById('page');
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (pageEl) pageEl.style.display = 'block';
+            }}
+
+            showLoading();
         </script>
 
         <script type="text/javascript"> // Image fix
@@ -950,11 +1625,11 @@ def generate_view(lang, css_file="/css/view.css", js_file="/js/view.js"):
                 var lang = "{esc(lang)}";
                 var cookie_name = lang.charAt(0)+'PINS';
                 var faves = getCookie(cookie_name);
-                var bol = faves.includes(data.name);
+                var bol = faves.includes(currentTopicData.name);
 
                 if(bol == true)
                 {{
-                    var SetFavs_value = faves.replace(data.name+'|','');
+                    var SetFavs_value = faves.replace(currentTopicData.name+'|','');
                     var expiration_date = new Date();
                     expiration_date.setFullYear(expiration_date.getFullYear() + 1);
                     var expires = "expires=" + expiration_date.toGMTString();
@@ -963,7 +1638,7 @@ def generate_view(lang, css_file="/css/view.css", js_file="/js/view.js"):
                 }}
                 else
                 {{
-                    SetFavs_value = data.name+'|'+faves
+                    SetFavs_value = currentTopicData.name+'|'+faves
                     var expiration_date = new Date();
                     expiration_date.setFullYear(expiration_date.getFullYear() + 1);
                     var expires = "expires=" + expiration_date.toGMTString();
@@ -977,7 +1652,7 @@ def generate_view(lang, css_file="/css/view.css", js_file="/js/view.js"):
             function StudySet(el) {{
                 var lessonChk = getCookie('topic_study');
 
-                if(data.name == lessonChk)
+                if(currentTopicData.name == lessonChk)
                 {{
                     var expiration_date = new Date();
                     expiration_date.setFullYear(expiration_date.getFullYear() + 1);
@@ -987,7 +1662,7 @@ def generate_view(lang, css_file="/css/view.css", js_file="/js/view.js"):
                 }}
                 else
                 {{
-                    SetFavs_value = data.name
+                    SetFavs_value = currentTopicData.name
                     var expiration_date = new Date();
                     expiration_date.setFullYear(expiration_date.getFullYear() + 1);
                     var expires = "expires=" + expiration_date.toGMTString();
@@ -1166,9 +1841,9 @@ def generate_view(lang, css_file="/css/view.css", js_file="/js/view.js"):
         </div>
 
         <div id="QuizButtons" class="QuizButtons" style="visibility:hidden;">
-                <input class="btnNo" id="Wrong" type="button" value="0" onclick="doFunction();" />
+                <input class="btnNo" id="Wrong" type="button" value="No" onclick="doFunction();" />
                 <input style="display: inline-block;" class="btnShow" id="Show" type="button" value="Show translation" onclick="doFunction();" />
-                <input class="btnOk" id="Right" type="button" value="0" onclick="doFunction();" />
+                <input class="btnOk" id="Right" type="button" value="OK" onclick="doFunction();" />
         </div>
 
         <div class="center">
@@ -1216,7 +1891,8 @@ def generate_favs(lang):
     return f"""<!doctype html>
 <html>
 <head>
-   <meta charset="UTF-8">
+  <meta charset="UTF-8">
+ <meta charset="UTF-8">
    <link rel="shortcut icon" href="/favicon.ico">
    <title>Topics</title>
    <link rel="stylesheet" href="/css/box.css">
@@ -1272,7 +1948,8 @@ def generate_root_index():
     """Generate the root index.html page."""
     return """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-<head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<head><meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
     <meta charset="utf-8">
     <title>Idiomind</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1322,7 +1999,6 @@ def generate_root_index():
                 <a class="site-nav-link" href="help.html" onfocus="this.blur();">Getting started</a>
                 <a class="site-nav-link" href="library.html" onfocus="this.blur();">Library</a>
                 <a class="site-nav-link" href="/news/index.html" onfocus="this.blur();">News</a>
-                <a class="site-nav-link" href="contact.html" onfocus="this.blur();">Contact</a>
             </nav>
             <a class="site-donate" href="/donate.html">Donate</a>
         </header>
@@ -1387,7 +2063,7 @@ apt-get install idiomind</code></pre>
     </div>
 
     <footer class="site-footer">
-        <p>&copy; 2023 <a href="https://idiomind.sourceforge.io">Idiomind Project</a></p>
+        <p>&copy; 2026 <a href="https://idiomind.sourceforge.io">Idiomind Project</a></p>
     </footer>
 
 </body>
@@ -1401,7 +2077,8 @@ def generate_search():
     search_html = """<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
+   <meta charset="UTF-8">
+ <meta charset="utf-8">
     <title>Idiomind - Search</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="/css/classic.css">
@@ -1504,7 +2181,8 @@ def generate_news_index():
     return """<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
+   <meta charset="UTF-8">
+ <meta charset="utf-8">
     <title>News</title>
     <meta http-equiv="refresh" content="0;url=page1.html">
     <script>window.location.href='page1.html';</script>
@@ -1513,6 +2191,267 @@ def generate_news_index():
     <p>Redirecting to <a href="page1.html">News</a>...</p>
 </body>
 </html>"""
+
+
+def patch_view_js():
+    """Keep quiz buttons labeled No/OK; numeric scores remain in the top counters."""
+    js_path = PUBLIC_DIR / "js" / "view.js"
+    if not js_path.is_file():
+        return
+
+    content = js_path.read_text(encoding="utf-8")
+    original = content
+
+    # Modern view.js
+    content = content.replace(
+        "rightBtn.setAttribute('value', scoreOk);",
+        "rightBtn.setAttribute('value', 'OK');"
+    )
+    content = content.replace(
+        "wrongBtn.setAttribute('value', scoreNo);",
+        "wrongBtn.setAttribute('value', 'No');"
+    )
+
+    # Legacy view.js
+    content = content.replace(
+        'document.getElementById("Right").setAttribute("value", scoreOk);',
+        'document.getElementById("Right").setAttribute("value", "OK");'
+    )
+    content = content.replace(
+        'document.getElementById("Wrong").setAttribute("value", scoreNo);',
+        'document.getElementById("Wrong").setAttribute("value", "No");'
+    )
+
+    # Reset after a completed round.
+    content = content.replace(
+        'rightBtn.setAttribute("value", "0");',
+        'rightBtn.setAttribute("value", "OK");'
+    )
+    content = content.replace(
+        'wrongBtn.setAttribute("value", "0");',
+        'wrongBtn.setAttribute("value", "No");'
+    )
+    content = content.replace(
+        'document.getElementById("Right").setAttribute("value", "0");',
+        'document.getElementById("Right").setAttribute("value", "OK");'
+    )
+    content = content.replace(
+        'document.getElementById("Wrong").setAttribute("value", "0");',
+        'document.getElementById("Wrong").setAttribute("value", "No");'
+    )
+
+    if content != original:
+        js_path.write_text(content, encoding="utf-8")
+        print("  Patched js/view.js: quiz buttons remain No / OK")
+
+
+def _markdown_inline(text):
+    """Render the small Markdown inline syntax used by the editorial pages."""
+    # Preserve raw HTML while escaping actual Markdown text.
+    tokens = []
+
+    def hold(value):
+        token = f"\x00HTML{len(tokens)}\x00"
+        tokens.append(value)
+        return token
+
+    # Images and links are Markdown syntax, so process them before HTML tags.
+    def image_repl(m):
+        alt = html.escape(m.group(1), quote=True)
+        src = html.escape(m.group(2), quote=True)
+        return hold(f'<img src="{src}" alt="{alt}">')
+
+    def link_repl(m):
+        label = _markdown_inline(m.group(1))
+        href = html.escape(m.group(2), quote=True)
+        return hold(f'<a href="{href}">{label}</a>')
+
+    text = re.sub(r'!\[([^]]*)\]\(([^)]+)\)', image_repl, text)
+    text = re.sub(r'\[([^]]+)\]\(([^)]+)\)', link_repl, text)
+
+    parts = re.split(r'(<[^>]+>)', text)
+    out = []
+    for part in parts:
+        if part.startswith('<') and part.endswith('>'):
+            out.append(hold(part))
+        else:
+            value = html.escape(part, quote=False)
+            value = re.sub(r'`([^`]+)`', r'<code>\1</code>', value)
+            value = re.sub(r'\*\*([^*]+)\*\*', r'<strong>\1</strong>', value)
+            value = re.sub(r'__([^_]+)__', r'<strong>\1</strong>', value)
+            value = re.sub(r'(?<!\*)\*([^*]+)\*(?!\*)', r'<em>\1</em>', value)
+            value = re.sub(r'(?<!_)_([^_]+)_(?!_)', r'<em>\1</em>', value)
+            out.append(value)
+
+    result = ''.join(out)
+    for i, value in enumerate(tokens):
+        result = result.replace(f"\x00HTML{i}\x00", value)
+    return result
+
+
+def _is_table_separator(line):
+    cells = [c.strip() for c in line.strip().strip('|').split('|')]
+    return bool(cells) and all(re.fullmatch(r':?-{3,}:?', c) for c in cells)
+
+
+def render_markdown(markdown_text):
+    """Render the editorial Markdown used by Idiomind without external packages.
+
+    This intentionally implements the Markdown subset used by the site's content:
+    headings, paragraphs, emphasis, inline code, links, images, ordered/unordered
+    lists, tables, indented code blocks, horizontal rules, and raw HTML.
+    """
+    lines = markdown_text.replace('\r\n', '\n').replace('\r', '\n').split('\n')
+    out = []
+    i = 0
+    paragraph = []
+
+    def flush_paragraph():
+        nonlocal paragraph
+        if paragraph:
+            text = ' '.join(x.strip() for x in paragraph).strip()
+            if text:
+                out.append(f'<p>{_markdown_inline(text)}</p>')
+            paragraph = []
+
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+
+        if not stripped:
+            flush_paragraph()
+            i += 1
+            continue
+
+        # Preserve raw HTML lines exactly. Markdown is still processed on the
+        # surrounding lines, so HTML can be used for layout-specific elements.
+        if stripped.startswith('<') and stripped.endswith('>'):
+            flush_paragraph()
+            out.append(line)
+            i += 1
+            continue
+
+        # Indented code block (used by the installation commands and diagrams).
+        if line.startswith('    ') or line.startswith('\t'):
+            flush_paragraph()
+            code = []
+            while i < len(lines):
+                current = lines[i]
+                if current.startswith('    '):
+                    code.append(current[4:])
+                    i += 1
+                elif current.startswith('\t'):
+                    code.append(current[1:])
+                    i += 1
+                elif not current.strip():
+                    code.append('')
+                    i += 1
+                else:
+                    break
+            while code and code[-1] == '':
+                code.pop()
+            out.append('<pre><code>' + html.escape('\n'.join(code), quote=False) + '</code></pre>')
+            continue
+
+        # ATX headings.
+        heading = re.match(r'^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$', line)
+        if heading:
+            flush_paragraph()
+            level = len(heading.group(1))
+            out.append(f'<h{level}>{_markdown_inline(heading.group(2))}</h{level}>')
+            i += 1
+            continue
+
+        # Horizontal rule.
+        if re.fullmatch(r'\s{0,3}((\*\s*){3,}|(-\s*){3,}|(_\s*){3,})', line):
+            flush_paragraph()
+            out.append('<hr>')
+            i += 1
+            continue
+
+        # GFM-style table.
+        if i + 1 < len(lines) and '|' in line and _is_table_separator(lines[i + 1]):
+            flush_paragraph()
+            headers = [c.strip() for c in line.strip().strip('|').split('|')]
+            i += 2
+            rows = []
+            while i < len(lines) and '|' in lines[i] and lines[i].strip():
+                rows.append([c.strip() for c in lines[i].strip().strip('|').split('|')])
+                i += 1
+            out.append('<table>')
+            out.append('<thead><tr>' + ''.join(f'<th>{_markdown_inline(c)}</th>' for c in headers) + '</tr></thead>')
+            out.append('<tbody>')
+            for row in rows:
+                cells = row + [''] * max(0, len(headers) - len(row))
+                out.append('<tr>' + ''.join(f'<td>{_markdown_inline(c)}</td>' for c in cells[:len(headers)]) + '</tr>')
+            out.append('</tbody></table>')
+            continue
+
+        # Unordered list.
+        if re.match(r'^\s{0,3}[-+*]\s+', line):
+            flush_paragraph()
+            items = []
+            while i < len(lines):
+                m = re.match(r'^\s{0,3}[-+*]\s+(.+)$', lines[i])
+                if not m:
+                    break
+                items.append(m.group(1).strip())
+                i += 1
+            out.append('<ul>' + ''.join(f'<li>{_markdown_inline(x)}</li>' for x in items) + '</ul>')
+            continue
+
+        # Ordered list.
+        if re.match(r'^\s{0,3}\d+[.)]\s+', line):
+            flush_paragraph()
+            items = []
+            while i < len(lines):
+                m = re.match(r'^\s{0,3}\d+[.)]\s+(.+)$', lines[i])
+                if not m:
+                    break
+                items.append(m.group(1).strip())
+                i += 1
+            out.append('<ol>' + ''.join(f'<li>{_markdown_inline(x)}</li>' for x in items) + '</ol>')
+            continue
+
+        # Normal Markdown paragraph line.
+        paragraph.append(line)
+        i += 1
+
+    flush_paragraph()
+    return '\n'.join(out)
+
+
+def render_static_markdown_page(relative_html):
+    """Render one HTML template by injecting only its Markdown content."""
+    template_path = SOURCE_DIR / relative_html
+    content_rel = MARKDOWN_CONTENT[relative_html]
+    content_path = SOURCE_DIR / content_rel
+
+    if not template_path.is_file():
+        raise RuntimeError(f"HTML template not found: {template_path}")
+    if not content_path.is_file():
+        raise RuntimeError(f"Markdown content not found: {content_path}")
+
+    template = template_path.read_text(encoding="utf-8", errors="replace")
+    markdown_text = content_path.read_text(encoding="utf-8", errors="replace")
+    if "{{CONTENT}}" not in template:
+        raise RuntimeError(
+            f"HTML template has no {{CONTENT}} placeholder: {template_path}"
+        )
+
+    content_html = render_markdown(markdown_text).strip()
+    return template.replace("{{CONTENT}}", content_html, 1)
+
+
+def write_markdown_page(relative_html):
+    """Build one Markdown-backed static page into public/."""
+    output_path = PUBLIC_DIR / relative_html
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(
+        render_static_markdown_page(relative_html),
+        encoding="utf-8",
+    )
+    print(f"  Generated {relative_html} from Markdown")
 
 
 def copy_static_files():
@@ -1557,8 +2496,11 @@ def copy_static_files():
     if src.is_dir():
         shutil.copytree(src, dist / "Files", dirs_exist_ok=True)
 
-    # Static HTML pages
+    # Static HTML pages. Markdown-backed pages are rendered from their
+    # templates below; the remaining pages continue to be copied unchanged.
     for fname in STATIC_HTML:
+        if fname in MARKDOWN_CONTENT:
+            continue
         src = SOURCE_DIR / fname
         if src.is_dir():
             shutil.copytree(src, dist / fname, dirs_exist_ok=True)
@@ -1581,6 +2523,9 @@ def copy_static_files():
     news_dist = dist / "news"
     news_dist.mkdir(exist_ok=True)
     for fname in ["page1.html", "page2.html"]:
+        relative = f"news/{fname}"
+        if relative in MARKDOWN_CONTENT:
+            continue
         src = SOURCE_DIR / "news" / fname
         if src.is_file():
             shutil.copy2(src, news_dist / fname)
@@ -1647,7 +2592,7 @@ def generate_doc_pages():
         content = content.replace('href="index.php"', 'href="index.html"')
 
         # These pages live at the site root, not under /doc/. Fix relative refs.
-        for name in ["help.html", "library.html", "contact.html"]:
+        for name in ["help.html", "library.html"]:
             content = content.replace(f'href="{name}"', f'href="/{name}"')
         for name in ["favicon-32x32.png", "favicon-16x16.png", "favicon.ico"]:
             content = content.replace(f'href="{name}"', f'href="/{name}"')
@@ -1724,7 +2669,8 @@ def generate_doc_pages():
         fb_list = chr(10).join(fb_rows) if fb_rows else "<li>No feedback yet.</li>"
         fb_html = f"""<!DOCTYPE html>
 <html lang="en">
-<head>
+<head><meta charset="UTF-8">
+
 <meta charset="utf-8">
 <title>Feedback - Idiomind</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1746,7 +2692,7 @@ def generate_doc_pages():
 </div>
 </div>
 <div class="footer">
-<span><p><small>&copy; 2019 <a href="https://idiomind.sourceforge.io">Idiomind Project</a></small></p></span>
+<span><p><small>&copy; 2026 <a href="https://idiomind.sourceforge.io">Idiomind Project</a></small></p></span>
 </div>
 </body>
 </html>"""
@@ -1878,14 +2824,14 @@ def build():
     # Copy static files
     print("\nCopying static files...")
     copy_static_files()
+    patch_view_js()
 
-    # Copy root pages from SourceSite.
-    # SourceSite is the editable source; public/ is the reproducible deployment target.
-    root_index_src = SOURCE_DIR / "index.html"
-    if not root_index_src.is_file():
-        raise RuntimeError(f"Source root index not found: {root_index_src}")
-    print("Copying SourceSite/index.html -> public/index.html...")
-    shutil.copy2(root_index_src, PUBLIC_DIR / "index.html")
+    # Render Markdown-backed editorial pages.
+    # The HTML files remain templates; only {{CONTENT}} is replaced.
+    for relative_html in MARKDOWN_CONTENT:
+        if relative_html == "index.html":
+            print("Generating index.html from Markdown...")
+        write_markdown_page(relative_html)
 
     # Generate news redirect
     print("Generating news/index.html...")
@@ -1972,6 +2918,42 @@ def build():
     print(f"  Target: {PUBLIC_DIR}")
     print(f"  Total files: {total_files}")
     print(f"{'=' * 60}")
+
+    # Offer to start Apache only when the service is not already running.
+    # If Apache is active, leave it untouched and finish silently.
+    import shutil
+    import subprocess
+
+    apache_running = False
+    if shutil.which("systemctl") is not None:
+        status = subprocess.run(
+            ["systemctl", "is-active", "--quiet", "apache2"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        apache_running = status.returncode == 0
+
+    if apache_running:
+        print("  Apache is already running.")
+    else:
+        try:
+            answer = input("\n  Apache is not running. Start Apache? [y/N]: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            answer = ""
+            print()
+
+        if answer.lower() == "y":
+            if shutil.which("sudo") is None:
+                print("  ERROR: 'sudo' was not found; Apache was not started.")
+            elif shutil.which("systemctl") is None:
+                print("  ERROR: 'systemctl' was not found; Apache was not started.")
+            else:
+                print("  Starting Apache...")
+                result = subprocess.run(["sudo", "systemctl", "start", "apache2"])
+                if result.returncode == 0:
+                    print("  Apache started.")
+                else:
+                    print(f"  Apache was not started (exit code {result.returncode}).")
 
 
 if __name__ == "__main__":

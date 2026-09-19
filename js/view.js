@@ -610,7 +610,15 @@ var Topic = (function () {
         }).then(function (data) {
             currentTopicData = data;
             renderPage(data);
-        }).catch(reportLoadError);
+            if (typeof hideLoading === 'function') {
+                hideLoading();
+            }
+        }).catch(function (error) {
+            reportLoadError(error);
+            if (typeof hideLoading === 'function') {
+                hideLoading();
+            }
+        });
     }
 
     return {

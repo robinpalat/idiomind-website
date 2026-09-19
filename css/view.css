@@ -411,6 +411,10 @@ body > button {
     width: 99%;
 }
 
+#TopicLanding .topic-details > div {
+    text-align: left;
+}
+
 .btnShow {
   font-size: 10px;
   font-size: 1.20vw;

@@ -1,3 +1,7 @@
 /dist/
 /share/images/
 *.cpython-313.pyc
+/.obsidian/
+/__pycache__/
+/content/
+/sync_sourceforge.py
